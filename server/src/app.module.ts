@@ -11,7 +11,7 @@ import { PostsModule } from './posts/posts.module';
 import { RepliesModule } from './replies/replies.module';
 import { UpvotesModule } from './upvotes/upvotes.module';
 import { DatabaseModule } from './database/database.module';
-
+import { SearchModule } from './search/search.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -47,6 +47,7 @@ import { DatabaseModule } from './database/database.module';
     RepliesModule,
     UpvotesModule,
     DatabaseModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
