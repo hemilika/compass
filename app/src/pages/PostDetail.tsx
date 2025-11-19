@@ -73,7 +73,7 @@ const PostDetailPage = () => {
       if (!post) return;
       try {
         await createReplyMutation.mutateAsync({
-          post_id: post.id,
+          post_id: +post.id,
           content: value.content,
         });
         replyForm.reset();
@@ -209,7 +209,10 @@ const PostDetailPage = () => {
                 <ChevronUp className="h-5 w-5" />
               </Button>
               <span
-                className={cn("text-xs font-semibold", isUpvoted && "text-primary")}
+                className={cn(
+                  "text-xs font-semibold",
+                  isUpvoted && "text-primary"
+                )}
               >
                 {post.upvote_count}
               </span>
@@ -448,4 +451,3 @@ const PostDetailPage = () => {
 };
 
 export default PostDetailPage;
-
