@@ -1,15 +1,15 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { useAuth } from "../../hooks/useAuth";
 import { ThemeSwitcher } from "./ThemeSwitcher";
-import Button from "./Button";
+import { Button } from "./Button";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const router = useRouterState();
   const { isAuthenticated, logout } = useAuth();
 
-  const isActiveLink = (path: string) => location.pathname === path;
+  const isActiveLink = (path: string) => router.location.pathname === path;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-zinc-200/50 bg-white/80 backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-900/80">
@@ -55,15 +55,15 @@ const Navbar = () => {
           ) : (
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate({ to: "/login" })}
                 variant="ghost"
                 size="sm"
               >
                 Sign in
               </Button>
               <Button
-                onClick={() => navigate("/signup")}
-                variant="primary"
+                onClick={() => navigate({ to: "/signup" })}
+                variant="default"
                 size="sm"
               >
                 Sign up

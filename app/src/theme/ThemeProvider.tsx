@@ -1,15 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-
-export type ThemeMode = "light" | "dark" | "system";
-const THEME_STORAGE = "app-theme-mode";
-
-const ThemeContext = createContext<
-  | {
-      mode: ThemeMode;
-      setMode: (mode: ThemeMode) => void;
-    }
-  | undefined
->(undefined);
+import React, { useEffect, useState } from "react";
+import { ThemeMode, THEME_STORAGE, ThemeContext } from "./theme-context";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>("system");
@@ -38,10 +28,4 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       {children}
     </ThemeContext.Provider>
   );
-}
-
-export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
 }

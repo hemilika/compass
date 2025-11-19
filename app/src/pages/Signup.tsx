@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 import { Card, CardHeader, CardContent } from "../components/ui/Card";
-import Input from "../components/ui/Input";
-import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 
 import type { SignUpFormData, SignUpFormErrors } from "../types/types/SignUp";
 
@@ -32,6 +32,7 @@ const SignupPage = () => {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState<SignUpFormErrors>({});
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordStrength = useMemo((): PasswordStrength => {
@@ -42,7 +43,7 @@ const SignupPage = () => {
       lowercase: /[a-z]/.test(password),
       uppercase: /[A-Z]/.test(password),
       number: /\d/.test(password),
-      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password),
     };
 
     const score = Object.values(checks).filter(Boolean).length;
@@ -136,10 +137,7 @@ const SignupPage = () => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Redirect to login after successful signup
-    navigate("/login", {
-      replace: true,
-      state: { message: "Account created successfully! Please sign in." },
-    });
+    navigate({ to: "/login", replace: true });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,53 +169,41 @@ const SignupPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="First Name"
                   type="text"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChange}
                   placeholder="John"
-                  error={errors.firstName}
                   required
-                  fullWidth
                 />
 
                 <Input
-                  label="Last Name"
                   type="text"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleInputChange}
                   placeholder="Doe"
-                  error={errors.lastName}
                   required
-                  fullWidth
                 />
               </div>
 
               <Input
-                label="Email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="john.doe@example.com"
-                error={errors.email}
                 required
-                fullWidth
               />
 
               <div className="space-y-3">
                 <Input
-                  label="Password"
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Create a strong password"
-                  error={errors.password}
                   required
-                  fullWidth
                 />
 
                 {/* Password Strength Indicator */}
@@ -438,15 +424,12 @@ const SignupPage = () => {
               </div>
 
               <Input
-                label="Confirm Password"
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 placeholder="Confirm your password"
-                error={errors.confirmPassword}
                 required
-                fullWidth
               />
 
               <div className="flex items-start space-x-2 text-sm">
@@ -473,13 +456,7 @@ const SignupPage = () => {
                 </span>
               </div>
 
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                isLoading={isLoading}
-              >
+              <Button type="submit" variant="default" size="lg">
                 Create account
               </Button>
             </form>
@@ -499,7 +476,6 @@ const SignupPage = () => {
               type="button"
               variant="outline"
               size="lg"
-              fullWidth
               onClick={() => {
                 // TODO: Implement Google OAuth
                 console.log("Google login clicked");

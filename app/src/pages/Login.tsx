@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 import { Card, CardHeader, CardContent } from "../components/ui/Card";
-import Input from "../components/ui/Input";
-import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const LoginPage = () => {
   });
 
   const handleSubmit = async () => {
-    navigate("/");
+    navigate({ to: "/" });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,25 +40,21 @@ const LoginPage = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Enter your email"
                 required
-                fullWidth
               />
 
               <Input
-                label="Password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Enter your password"
                 required
-                fullWidth
               />
 
               <div className="flex items-center justify-between text-sm">
@@ -71,15 +67,9 @@ const LoginPage = () => {
                     Remember me
                   </span>
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-zinc-300 font-medium"
-                >
-                  Forgot password?
-                </Link>
               </div>
 
-              <Button type="submit" variant="primary" size="lg" fullWidth>
+              <Button type="submit" size="lg" className="bg-primary">
                 Sign in
               </Button>
             </form>
@@ -89,7 +79,7 @@ const LoginPage = () => {
                 Don't have an account?{" "}
                 <Link
                   to="/signup"
-                  className="font-medium text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-zinc-300"
+                  className="font-medium text-foreground hover:text-foreground/80"
                 >
                   Sign up
                 </Link>

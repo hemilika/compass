@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import Button from "../components/ui/Button";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "../components/ui/Button";
 import { Card, CardHeader, CardContent } from "../components/ui/Card";
 
 const HomePage = () => {
@@ -23,14 +23,14 @@ const HomePage = () => {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button
-            onClick={() => navigate("/signup")}
-            variant="primary"
+            onClick={() => navigate({ to: "/signup" })}
+            variant="default"
             size="lg"
           >
             Get Started
           </Button>
           <Button
-            onClick={() => navigate("/login")}
+            onClick={() => navigate({ to: "/login" })}
             variant="outline"
             size="lg"
           >
