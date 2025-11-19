@@ -5,7 +5,7 @@ const Navbar = () => {
   const { mode, setMode } = useTheme();
 
   return (
-    <nav className="w-full border-b border-zinc-200 bg-white/60 backdrop-blur dark:border-zinc-800 dark:bg-black/60">
+    <nav className="w-full border-b border-zinc-200 bg-white/60 backdrop-blur-sm dark:border-zinc-800 dark:bg-black/60">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
           <Link

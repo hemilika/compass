@@ -11,7 +11,7 @@ const HomePage = () => {
       <div className="text-center py-12 sm:py-16">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-zinc-900 dark:text-zinc-50 mb-6">
           React{" "}
-          <span className="bg-gradient-to-r from-zinc-600 to-zinc-900 dark:from-zinc-300 dark:to-zinc-100 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-zinc-600 to-zinc-900 dark:from-zinc-300 dark:to-zinc-100 bg-clip-text text-transparent">
             Boilerplate
           </span>
         </h1>

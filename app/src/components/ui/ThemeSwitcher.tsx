@@ -24,7 +24,7 @@ export const ThemeSwitcher = () => {
             text-sm transition-all duration-200
             ${
               currentMode === m.mode
-                ? "shadow-sm scale-105"
+                ? "shadow-xs scale-105"
                 : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
             }
           `.trim()}
