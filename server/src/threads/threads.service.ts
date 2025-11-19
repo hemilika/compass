@@ -16,7 +16,7 @@ export class ThreadsService {
     private threadUsersRepository: Repository<ThreadUser>,
     @InjectRepository(Bu)
     private buRepository: Repository<Bu>,
-  ) {}
+  ) { }
 
   async create(
     createThreadDto: CreateThreadDto,
@@ -78,6 +78,11 @@ export class ThreadsService {
 
   async remove(id: number): Promise<void> {
     const thread = await this.findOne(id);
+
+    // Remove all thread-user relationships
+    await this.threadUsersRepository.delete({ thread_id: id });
+
+    // Remove the thread
     await this.threadsRepository.remove(thread);
   }
 

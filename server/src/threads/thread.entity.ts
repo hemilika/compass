@@ -38,9 +38,9 @@ export class Thread {
     @JoinColumn({ name: 'bu_id' })
     bu: Bu;
 
-    @OneToMany(() => Post, (post) => post.thread)
+    @OneToMany(() => Post, (post) => post.thread, { onDelete: 'CASCADE' })
     posts: Post[];
 
-    @OneToMany(() => ThreadUser, (threadUser) => threadUser.thread)
+    @OneToMany(() => ThreadUser, (threadUser) => threadUser.thread, { onDelete: 'CASCADE' })
     threadUsers: ThreadUser[];
 }
