@@ -1,24 +1,51 @@
-export interface Category {
-  id: string;
+export interface Bu {
+  id: number;
   name: string;
-  parentId: string | null;
+}
+
+export interface User {
+  id: number;
+  email: string;
+  firstname?: string;
+  lastname?: string;
+  buId?: number | null;
+  roles?: string[];
+  techstack?: string[];
+  userRoles?: string[];
+  hobbies?: string[];
+  createdAt: Date;
+}
+
+export interface Thread {
+  id: number;
+  name: string;
+  description?: string | null;
+  buId: number | null;
+  createdAt: Date;
 }
 
 export interface Post {
-  id: string;
-  categoryId: string;
-  authorId: string;
+  id: number;
+  buId: number | null;
+  threadId: number;
+  authorId: number;
   title: string;
-  body: string;
-  score: number;
+  content: string;
+  iconUrl?: string | null;
+  imageUrls?: string[] | null;
+  upvoteCount: number;
   createdAt: Date;
+  updatedAt?: Date | null;
 }
 
-export interface Message {
-  id: string;
-  postId: string;
-  parentMessageId: string | null;
-  authorId: string;
-  body: string;
+export interface Reply {
+  id: number;
+  postId: number;
+  authorId: number;
+  parentReplyId?: number | null;
+  content: string;
+  imageUrls?: string[] | null;
+  upvoteCount: number;
   createdAt: Date;
+  updatedAt?: Date | null;
 }

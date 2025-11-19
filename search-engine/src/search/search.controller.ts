@@ -4,39 +4,34 @@ import { SearchQueryDto } from './dto/search-query.dto';
 
 @Controller()
 export class SearchController {
-    constructor(private readonly searchService: SearchService) { }
+    constructor(private readonly search: SearchService) { }
 
     @Get('search')
-    search(@Query() query: SearchQueryDto) {
-        const limit = query.limit ? parseInt(query.limit, 10) : 20;
-
-        const results = this.searchService.search({
-            query: query.query,
-            type: query.type,
-            categoryId: query.categoryId,
-            limit,
+    run(@Query() q: SearchQueryDto) {
+        return this.search.search({
+            query: q.query,
+            type: q.type,
+            match: q.match,
+            buId: q.buId ? Number(q.buId) : undefined,
+            threadId: q.threadId ? Number(q.threadId) : undefined,
+            sort: q.sort,
+            page: q.page ? Number(q.page) : 1,
+            limit: q.limit ? Number(q.limit) : 20,
         });
-
-        return {
-            query,
-            count: results.length,
-            results,
-        };
     }
 
-    // Extra debug endpoints
-    @Get('debug/documents')
-    documents() {
-        return this.searchService.getIndexedDocuments();
+    @Get('health')
+    health() {
+        return { status: 'ok', timestamp: Date.now() };
     }
 
-    @Get('debug/categories')
-    categories() {
-        return this.searchService.getCategories();
+    @Get('stats')
+    stats() {
+        return this.search.stats();
     }
 
-    @Get('debug/posts')
-    posts() {
-        return this.searchService.getPosts();
+    @Get('debug/docs')
+    docs() {
+        return this.search['documents'];
     }
 }

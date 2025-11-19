@@ -1,4 +1,3 @@
-// src/search/dto/search-query.dto.ts
 import { IsOptional, IsString, IsIn } from 'class-validator';
 
 export class SearchQueryDto {
@@ -6,14 +5,24 @@ export class SearchQueryDto {
     query: string;
 
     @IsOptional()
-    @IsIn(['post', 'message'])
-    type?: 'post' | 'message';
+    @IsIn(['post', 'reply'])
+    type?: 'post' | 'reply';
 
     @IsOptional()
-    @IsString()
-    categoryId?: string;
+    match?: 'or' | 'and' | 'exact';
 
     @IsOptional()
-    @IsString()
-    limit?: string; // we'll parse as number in controller
+    buId?: string;
+
+    @IsOptional()
+    threadId?: string;
+
+    @IsOptional()
+    sort?: 'relevance' | 'new' | 'top';
+
+    @IsOptional()
+    page?: string;
+
+    @IsOptional()
+    limit?: string;
 }
