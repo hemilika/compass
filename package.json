@@ -1,0 +1,11 @@
+{
+  "name": "compass",
+  "scripts": {
+    "app-vite": "cd app && npm install && npm run dev",
+    "server": "cd server && pnpm install && pnpm start:dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
