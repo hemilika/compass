@@ -66,11 +66,12 @@ export const LeftSidebar = () => {
                 return (
                   <Link
                     key={thread.id}
-                    to={`/threads/${thread.id}`}
+                    to="/threads/$threadId"
+                    params={{ threadId: thread.id.toString() }}
                     className="flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
+                      <div className="h-6 w-6 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
                         {initial}
                       </div>
                       <span className="font-medium truncate max-w-[120px]">

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -27,14 +27,14 @@ const ProfilePage = () => {
       ? `${displayUser.firstname[0]}${displayUser.lastname[0]}`.toUpperCase()
       : displayUser?.email?.[0].toUpperCase() || "U";
 
-  const form = useForm<UpdateUserRequest>({
+  const form = useForm({
     defaultValues: {
       firstname: displayUser?.firstname || "",
       lastname: displayUser?.lastname || "",
       techstack: displayUser?.techstack || [],
       user_roles: displayUser?.user_roles || [],
       hobbies: displayUser?.hobbies || [],
-    },
+    } satisfies UpdateUserRequest,
     onSubmit: async ({ value }) => {
       if (!displayUser) return;
       try {

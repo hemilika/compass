@@ -68,7 +68,7 @@ export const RightSidebar = () => {
               <div key={bu.id}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
+                    <div className="h-8 w-8 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
                       {bu.name.charAt(0).toUpperCase()}
                     </div>
                     <div>

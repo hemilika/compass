@@ -63,7 +63,7 @@ const ThreadDetailPage = () => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-xl font-bold text-primary-foreground">
+                <div className="h-12 w-12 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xl font-bold text-primary-foreground">
                   {thread.name.charAt(0).toUpperCase()}
                 </div>
                 <div>

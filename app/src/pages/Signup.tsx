@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Input } from "../components/ui/Input";
+import { Input } from "../components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -137,6 +137,17 @@ const PasswordRequirement = ({
   </div>
 );
 
+const defaultValues: SignupFormData = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  businessUnit: "",
+  techStack: "",
+  companyRole: "",
+  hobbies: "",
+};
 const SignupPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -144,17 +155,7 @@ const SignupPage = () => {
   const { data: businessUnits } = useBusinessUnits();
 
   const form = useForm({
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      businessUnit: "",
-      techStack: "",
-      companyRole: "",
-      hobbies: "",
-    } as SignupFormData,
+    defaultValues: defaultValues,
     onSubmit: async ({ value }) => {
       try {
         // Convert comma-separated strings to arrays, filtering out empty values

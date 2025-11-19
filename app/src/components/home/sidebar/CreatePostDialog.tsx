@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -28,6 +28,15 @@ interface CreatePostDialogProps {
   defaultThreadId?: number;
 }
 
+const defaultValues: CreatePostRequest = {
+  thread_id: 0,
+  bu_id: undefined,
+  title: "",
+  content: "",
+  icon_url: "",
+  image_urls: [],
+};
+
 export const CreatePostDialog = ({
   open,
   onOpenChange,
@@ -37,15 +46,8 @@ export const CreatePostDialog = ({
   const { data: threads } = useThreads();
   const { data: businessUnits } = useBusinessUnits();
 
-  const form = useForm<CreatePostRequest>({
-    defaultValues: {
-      thread_id: defaultThreadId || 0,
-      bu_id: undefined,
-      title: "",
-      content: "",
-      icon_url: "",
-      image_urls: [],
-    },
+  const form = useForm({
+    defaultValues: defaultValues,
     onSubmit: async ({ value }) => {
       try {
         await createPostMutation.mutateAsync({

@@ -1,10 +1,16 @@
 import { useForm } from "@tanstack/react-form";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Input } from "../components/ui/Input";
+import { Input } from "../components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useLogin } from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
+import { LoginRequest } from "@/types/api";
+
+const defaultValues: LoginRequest = {
+  email: "",
+  password: "",
+};
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -12,10 +18,7 @@ const LoginPage = () => {
   const loginMutation = useLogin();
 
   const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: defaultValues,
     onSubmit: async ({ value }) => {
       const response = await loginMutation.mutateAsync({
         email: value.email,

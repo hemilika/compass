@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserProfile } from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -51,7 +50,7 @@ const SettingsPage = () => {
       {/* Page Title */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-lg bg-linear-to-br from-primary to-primary/60 flex items-center justify-center">
             <SettingsIcon className="h-5 w-5 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
@@ -63,12 +62,12 @@ const SettingsPage = () => {
 
       {/* Account Overview Card */}
       {displayUser && (
-        <Card className="border-2 bg-gradient-to-br from-card to-card/50">
+        <Card className="border-2 bg-linear-to-br from-card to-card/50">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-primary/20">
                 <AvatarImage src="/logos/honeycomb-logo.png" alt="User" />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-primary-foreground text-lg font-bold">
+                <AvatarFallback className="bg-linear-to-br from-primary to-primary/60 text-primary-foreground text-lg font-bold">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>
