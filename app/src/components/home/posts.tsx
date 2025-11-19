@@ -1,95 +1,79 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import {
   ChevronUp,
-  ChevronDown,
   MessageCircle,
   Share2,
   Bookmark,
   MoreHorizontal,
+  Loader2,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  community: string;
-  upvotes: number;
-  comments: number;
-  timeAgo: string;
-  image?: string;
-  hasImage: boolean;
-}
-
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    title: "Just launched my first React app! What do you think?",
-    content:
-      "After months of learning, I finally built and deployed my first React application. It's a task management tool with real-time updates. Would love to get feedback from the community!",
-    author: "dev_newbie",
-    community: "r/reactjs",
-    upvotes: 1247,
-    comments: 89,
-    timeAgo: "2 hours ago",
-    hasImage: false,
-  },
-  {
-    id: "2",
-    title: "TypeScript 5.5 is out with amazing new features",
-    content:
-      "The latest TypeScript release includes improved type inference, better error messages, and performance improvements. Check out the release notes!",
-    author: "ts_enthusiast",
-    community: "r/typescript",
-    upvotes: 3421,
-    comments: 234,
-    timeAgo: "5 hours ago",
-    hasImage: false,
-  },
-  {
-    id: "3",
-    title: "Building a full-stack app with Next.js and Prisma",
-    content:
-      "Here's a comprehensive guide on how I built a production-ready application using Next.js 14, Prisma, and PostgreSQL. Includes authentication, database setup, and deployment strategies.",
-    author: "fullstack_dev",
-    community: "r/webdev",
-    upvotes: 2890,
-    comments: 156,
-    timeAgo: "8 hours ago",
-    hasImage: true,
-  },
-  {
-    id: "4",
-    title: "What's your favorite Node.js framework in 2024?",
-    content:
-      "I'm starting a new project and trying to decide between Express, Fastify, and Hono. What are your experiences with these frameworks?",
-    author: "backend_engineer",
-    community: "r/node",
-    upvotes: 567,
-    comments: 78,
-    timeAgo: "12 hours ago",
-    hasImage: false,
-  },
-];
+import { usePosts, useUpvotePost, useRemovePostUpvote, useMyUpvotes } from "@/hooks/api";
+import { useAuth } from "@/hooks/useAuth";
+import type { Post } from "@/types/api";
 
 export const Posts = () => {
-  const [votedPosts, setVotedPosts] = useState<Record<string, "up" | "down" | null>>({});
+  const { isAuthenticated } = useAuth();
+  const { data: posts, isLoading, error } = usePosts();
+  const { data: myUpvotes } = useMyUpvotes();
+  const upvoteMutation = useUpvotePost();
+  const removeUpvoteMutation = useRemovePostUpvote();
 
-  const handleVote = (postId: string, direction: "up" | "down") => {
-    setVotedPosts((prev) => {
-      const current = prev[postId];
-      if (current === direction) {
-        return { ...prev, [postId]: null };
-      }
-      return { ...prev, [postId]: direction };
-    });
+  // Create a map of upvoted post IDs for quick lookup
+  const upvotedPostIds = useMemo(() => {
+    if (!myUpvotes) return new Set<number>();
+    return new Set(
+      myUpvotes
+        .filter((upvote) => upvote.post_id)
+        .map((upvote) => upvote.post_id!)
+    );
+  }, [myUpvotes]);
+
+  const handleUpvote = async (postId: number) => {
+    if (!isAuthenticated) return;
+
+    const isUpvoted = upvotedPostIds.has(postId);
+    if (isUpvoted) {
+      await removeUpvoteMutation.mutateAsync(postId);
+    } else {
+      await upvoteMutation.mutateAsync(postId);
+    }
   };
+
+  const formatTimeAgo = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+    } catch {
+      return "Unknown time";
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-destructive">Failed to load posts. Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (!posts || posts.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-muted-foreground">No posts found. Be the first to create one!</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -113,13 +97,20 @@ export const Posts = () => {
 
       {/* Posts List */}
       <div className="space-y-4">
-        {mockPosts.map((post) => {
-          const voteState = votedPosts[post.id] || null;
-          const isUpvoted = voteState === "up";
-          const isDownvoted = voteState === "down";
+        {posts.map((post: Post) => {
+          const isUpvoted = upvotedPostIds.has(post.id);
+          const replyCount = post.replies?.length || 0;
+          const authorName =
+            post.author?.firstname && post.author?.lastname
+              ? `${post.author.firstname} ${post.author.lastname}`
+              : post.author?.email?.split("@")[0] || "Unknown";
+          const threadName = post.thread?.name || "Unknown Thread";
 
           return (
-            <Card key={post.id} className="overflow-hidden hover:shadow-md transition-shadow">
+            <Card
+              key={post.id}
+              className="overflow-hidden hover:shadow-md transition-shadow"
+            >
               <CardContent className="p-0">
                 <div className="flex">
                   {/* Voting Section */}
@@ -129,32 +120,22 @@ export const Posts = () => {
                       size="icon"
                       className={cn(
                         "h-8 w-8 rounded-sm",
-                        isUpvoted && "text-primary"
+                        isUpvoted && "text-primary",
+                        (!isAuthenticated || upvoteMutation.isPending || removeUpvoteMutation.isPending) && "opacity-50 cursor-not-allowed"
                       )}
-                      onClick={() => handleVote(post.id, "up")}
+                      onClick={() => handleUpvote(post.id)}
+                      disabled={!isAuthenticated || upvoteMutation.isPending || removeUpvoteMutation.isPending}
                     >
                       <ChevronUp className="h-5 w-5" />
                     </Button>
                     <span
                       className={cn(
                         "text-xs font-semibold",
-                        isUpvoted && "text-primary",
-                        isDownvoted && "text-destructive"
+                        isUpvoted && "text-primary"
                       )}
                     >
-                      {post.upvotes}
+                      {post.upvote_count}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        "h-8 w-8 rounded-sm",
-                        isDownvoted && "text-destructive"
-                      )}
-                      onClick={() => handleVote(post.id, "down")}
-                    >
-                      <ChevronDown className="h-5 w-5" />
-                    </Button>
                   </div>
 
                   {/* Post Content */}
@@ -162,12 +143,12 @@ export const Posts = () => {
                     {/* Post Header */}
                     <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-semibold text-foreground">
-                        {post.community}
+                        {threadName}
                       </span>
                       <span>•</span>
-                      <span>Posted by u/{post.author}</span>
+                      <span>Posted by {authorName}</span>
                       <span>•</span>
-                      <span>{post.timeAgo}</span>
+                      <span>{formatTimeAgo(post.created_at)}</span>
                     </div>
 
                     {/* Post Title */}
@@ -180,12 +161,20 @@ export const Posts = () => {
                       {post.content}
                     </p>
 
-                    {/* Post Image Placeholder */}
-                    {post.hasImage && (
-                      <div className="mb-3 h-64 w-full rounded-lg bg-muted flex items-center justify-center">
-                        <span className="text-sm text-muted-foreground">
-                          Image placeholder
-                        </span>
+                    {/* Post Images */}
+                    {post.image_urls && post.image_urls.length > 0 && (
+                      <div className="mb-3 space-y-2">
+                        {post.image_urls.slice(0, 3).map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={url}
+                            alt={`Post image ${idx + 1}`}
+                            className="w-full rounded-lg object-cover max-h-64"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        ))}
                       </div>
                     )}
 
@@ -197,7 +186,7 @@ export const Posts = () => {
                         className="h-8 gap-2 text-xs"
                       >
                         <MessageCircle className="h-4 w-4" />
-                        {post.comments} Comments
+                        {replyCount} {replyCount === 1 ? "Comment" : "Comments"}
                       </Button>
                       <Button
                         variant="ghost"

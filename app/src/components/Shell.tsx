@@ -1,4 +1,5 @@
 import Navbar from "./Navbar";
+import { Toaster } from "@/components/ui/sonner";
 
 const Shell = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -11,6 +12,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => {
       <main className="relative flex-1 w-full mx-auto p-3">
         <div className="w-full">{children}</div>
       </main>
+      <Toaster />
     </div>
   );
 };

@@ -1,26 +1,39 @@
-import { useState } from "react";
-
+import { useForm } from "@tanstack/react-form";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "../components/ui/Input";
 import { Button } from "@/components/ui/button";
-
 import { useNavigate, Link } from "@tanstack/react-router";
+import { useLogin } from "@/hooks/api";
+import { useAuth } from "@/hooks/useAuth";
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const { login } = useAuth();
+  const loginMutation = useLogin();
+
+  const form = useForm<LoginFormData>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    onSubmit: async ({ value }) => {
+      try {
+        const response = await loginMutation.mutateAsync({
+          email: value.email,
+          password: value.password,
+        });
+        login(response.accessToken, response.user);
+        navigate({ to: "/" });
+      } catch {
+        // Error is handled by the mutation hook
+      }
+    },
   });
-
-  const handleSubmit = async () => {
-    navigate({ to: "/" });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4">
@@ -38,24 +51,78 @@ const LoginPage = () => {
           </CardHeader>
 
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                type="email"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+              className="space-y-4"
+            >
+              <form.Field
                 name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-              />
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value.trim()) return "Email is required";
+                    if (!/\S+@\S+\.\S+/.test(value)) return "Email is invalid";
+                    return undefined;
+                  },
+                }}
+              >
+                {(field) => (
+                  <div>
+                    <Input
+                      type="email"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Enter your email"
+                      className={
+                        field.state.meta.errors.length > 0
+                          ? "border-red-500"
+                          : ""
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
-              <Input
-                type="password"
+              <form.Field
                 name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Enter your password"
-                required
-              />
+                validators={{
+                  onChange: ({ value }) =>
+                    !value ? "Password is required" : undefined,
+                }}
+              >
+                {(field) => (
+                  <div>
+                    <Input
+                      type="password"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Enter your password"
+                      className={
+                        field.state.meta.errors.length > 0
+                          ? "border-red-500"
+                          : ""
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
 
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center space-x-2">
@@ -69,8 +136,13 @@ const LoginPage = () => {
                 </label>
               </div>
 
-              <Button type="submit" size="lg" className="bg-primary">
-                Sign in
+              <Button
+                type="submit"
+                size="lg"
+                className="bg-primary"
+                disabled={loginMutation.isPending || !form.state.canSubmit}
+              >
+                {loginMutation.isPending ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 

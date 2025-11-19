@@ -1,11 +1,11 @@
 {
-  "name": "compass",
+  "name": "honeycomb",
   "scripts": {
-    "app-vite": "cd app && npm install && npm run dev",
+    "front": "cd app && pnpm install && pnpm run dev",
     "server": "cd server && pnpm install && pnpm start:dev"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mano Nero",
   "license": "ISC",
   "type": "commonjs"
 }
