@@ -1,30 +1,42 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronUp,
   MessageCircle,
   Share2,
   Bookmark,
-  MoreHorizontal,
   Loader2,
+  Check,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { usePosts, useUpvotePost, useRemovePostUpvote, useMyUpvotes } from "@/hooks/api";
+import { toast } from "sonner";
+import {
+  usePosts,
+  useUpvotePost,
+  useRemovePostUpvote,
+  useMyUpvotes,
+} from "@/hooks/api";
 import { useAuth } from "@/hooks/useAuth";
 import type { Post } from "@/types/api";
 
+type SortOption = "hot" | "new" | "top";
+
 export const Posts = () => {
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const [sortBy, setSortBy] = useState<SortOption>("new");
   const { data: posts, isLoading, error } = usePosts();
   const { data: myUpvotes } = useMyUpvotes();
   const upvoteMutation = useUpvotePost();
   const removeUpvoteMutation = useRemovePostUpvote();
+  const [sharedPostId, setSharedPostId] = useState<number | null>(null);
 
   // Create a map of upvoted post IDs for quick lookup
   const upvotedPostIds = useMemo(() => {
-    if (!myUpvotes) return new Set<number>();
+    if (!myUpvotes || !Array.isArray(myUpvotes)) return new Set<number>();
     return new Set(
       myUpvotes
         .filter((upvote) => upvote.post_id)
@@ -42,6 +54,58 @@ export const Posts = () => {
       await upvoteMutation.mutateAsync(postId);
     }
   };
+
+  const handleShare = async (post: Post) => {
+    const url = `${window.location.origin}/posts/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setSharedPostId(post.id);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setSharedPostId(null), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleSave = () => {
+    // TODO: Implement save/bookmark functionality when backend supports it
+    toast.info("Save functionality coming soon!");
+  };
+
+  const sortedPosts = useMemo(() => {
+    if (!posts || !Array.isArray(posts)) return [];
+    // Ensure we have a valid array and deduplicate by id
+    const validPosts = posts.filter((post) => post && post.id);
+    const uniquePosts = Array.from(
+      new Map(validPosts.map((post) => [post.id, post])).values()
+    );
+    if (uniquePosts.length === 0) return [];
+    const sorted = [...uniquePosts];
+    switch (sortBy) {
+      case "new":
+        return sorted.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      case "top":
+        return sorted.sort((a, b) => b.upvote_count - a.upvote_count);
+      case "hot":
+        // Hot = recent posts with high upvotes
+        return sorted.sort((a, b) => {
+          const aScore =
+            a.upvote_count /
+            (1 +
+              (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60));
+          const bScore =
+            b.upvote_count /
+            (1 +
+              (Date.now() - new Date(b.created_at).getTime()) / (1000 * 60 * 60));
+          return bScore - aScore;
+        });
+      default:
+        return sorted;
+    }
+  }, [posts, sortBy]);
 
   const formatTimeAgo = (dateString: string) => {
     try {
@@ -67,7 +131,7 @@ export const Posts = () => {
     );
   }
 
-  if (!posts || posts.length === 0) {
+  if (!sortedPosts || sortedPosts.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
         <p className="text-muted-foreground">No posts found. Be the first to create one!</p>
@@ -79,30 +143,40 @@ export const Posts = () => {
     <div className="space-y-4">
       {/* Sort Options */}
       <div className="flex items-center gap-2 rounded-lg border bg-card p-2">
-        <Button variant="ghost" size="sm" className="h-8">
+        <Button
+          variant={sortBy === "hot" ? "default" : "ghost"}
+          size="sm"
+          className="h-8"
+          onClick={() => setSortBy("hot")}
+        >
           Hot
         </Button>
-        <Button variant="ghost" size="sm" className="h-8">
+        <Button
+          variant={sortBy === "new" ? "default" : "ghost"}
+          size="sm"
+          className="h-8"
+          onClick={() => setSortBy("new")}
+        >
           New
         </Button>
-        <Button variant="ghost" size="sm" className="h-8">
+        <Button
+          variant={sortBy === "top" ? "default" : "ghost"}
+          size="sm"
+          className="h-8"
+          onClick={() => setSortBy("top")}
+        >
           Top
         </Button>
-        <div className="ml-auto">
-          <Button variant="ghost" size="sm" className="h-8">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       {/* Posts List */}
       <div className="space-y-4">
-        {posts.map((post: Post) => {
+        {sortedPosts.map((post: Post) => {
           const isUpvoted = upvotedPostIds.has(post.id);
           const replyCount = post.replies?.length || 0;
           const authorName =
-            post.author?.firstname && post.author?.lastname
-              ? `${post.author.firstname} ${post.author.lastname}`
+            post.author?.firstname?.trim() && post.author?.lastname?.trim()
+              ? `${post.author.firstname.trim()} ${post.author.lastname.trim()}`
               : post.author?.email?.split("@")[0] || "Unknown";
           const threadName = post.thread?.name || "Unknown Thread";
 
@@ -152,9 +226,11 @@ export const Posts = () => {
                     </div>
 
                     {/* Post Title */}
-                    <h3 className="mb-2 text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
-                      {post.title}
-                    </h3>
+                    <Link to={`/posts/${post.id}`}>
+                      <h3 className="mb-2 text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
+                        {post.title}
+                      </h3>
+                    </Link>
 
                     {/* Post Content */}
                     <p className="mb-3 text-sm text-muted-foreground line-clamp-3">
@@ -184,6 +260,7 @@ export const Posts = () => {
                         variant="ghost"
                         size="sm"
                         className="h-8 gap-2 text-xs"
+                        onClick={() => navigate({ to: `/posts/${post.id}` })}
                       >
                         <MessageCircle className="h-4 w-4" />
                         {replyCount} {replyCount === 1 ? "Comment" : "Comments"}
@@ -192,14 +269,20 @@ export const Posts = () => {
                         variant="ghost"
                         size="sm"
                         className="h-8 gap-2 text-xs"
+                        onClick={() => handleShare(post)}
                       >
-                        <Share2 className="h-4 w-4" />
+                        {sharedPostId === post.id ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Share2 className="h-4 w-4" />
+                        )}
                         Share
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 gap-2 text-xs"
+                        onClick={handleSave}
                       >
                         <Bookmark className="h-4 w-4" />
                         Save

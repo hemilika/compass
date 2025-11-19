@@ -153,6 +153,54 @@ export const useUpdateUser = () => {
   });
 };
 
+export const useDeactivateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => usersApi.deactivate(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      toast.success("User deactivated successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to deactivate user");
+    },
+  });
+};
+
+export const useActivateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => usersApi.activate(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.detail(id),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      toast.success("User activated successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to activate user");
+    },
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => usersApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
+      toast.success("User deleted successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to delete user");
+    },
+  });
+};
+
 // Business Units Hooks
 export const useBusinessUnits = () => {
   return useQuery({
@@ -217,6 +265,20 @@ export const useUpdateBusinessUnit = () => {
   });
 };
 
+export const useDeleteBusinessUnit = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => buApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bu.lists() });
+      toast.success("Business unit deleted successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to delete business unit");
+    },
+  });
+};
+
 // Threads Hooks
 export const useThreads = () => {
   return useQuery({
@@ -277,6 +339,63 @@ export const useUpdateThread = () => {
     },
     onError: (error: ApiError) => {
       toast.error(error.message || "Failed to update thread");
+    },
+  });
+};
+
+export const useDeleteThread = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => threadsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
+      toast.success("Thread deleted successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to delete thread");
+    },
+  });
+};
+
+export const useAddUserToThread = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      threadId,
+      userId,
+      role,
+    }: {
+      threadId: number;
+      userId: number;
+      role: "member" | "moderator";
+    }) => threadsApi.addUser(threadId, userId, { role }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.threads.detail(variables.threadId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
+      toast.success("User added to thread successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to add user to thread");
+    },
+  });
+};
+
+export const useRemoveUserFromThread = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ threadId, userId }: { threadId: number; userId: number }) =>
+      threadsApi.removeUser(threadId, userId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.threads.detail(variables.threadId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
+      toast.success("User removed from thread successfully");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error.message || "Failed to remove user from thread");
     },
   });
 };

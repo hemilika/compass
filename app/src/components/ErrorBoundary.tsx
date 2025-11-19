@@ -1,7 +1,12 @@
 import { type ReactNode } from "react";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
-const ErrorFallback = ({ error, resetErrorBoundary }: any) => {
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
+}
+
+const ErrorFallback = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
   return (
     <div className="mx-auto max-w-xl p-6">
       <h2 className="text-2xl font-semibold text-red-600">

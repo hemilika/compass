@@ -1,4 +1,4 @@
-import axios, { AxiosError, type AxiosInstance } from "axios";
+import type { User } from "@/types/api";
 
 export type ApiError = {
   status: number;
@@ -6,7 +6,7 @@ export type ApiError = {
   details?: unknown;
 };
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";
@@ -35,11 +35,11 @@ export const setAuthToken = (token: string | null): void => {
   }
 };
 
-export const getAuthUser = (): unknown | null => {
+export const getAuthUser = (): User | null => {
   if (typeof window === "undefined") return null;
   try {
     const userStr = localStorage.getItem(USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    return userStr ? (JSON.parse(userStr) as User) : null;
   } catch {
     // localStorage not available or invalid JSON
     return null;
@@ -59,70 +59,127 @@ export const setAuthUser = (user: unknown | null): void => {
   }
 };
 
-function createHttpClient(): AxiosInstance {
-  const instance = axios.create({ baseURL, withCredentials: false });
+async function handleResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type");
+  const isJson = contentType?.includes("application/json");
 
-  instance.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-      const token = getAuthToken();
-      if (token) {
-        config.headers = config.headers ?? {};
-        config.headers["Authorization"] = `Bearer ${token}`;
-      }
+  let data: unknown;
+  if (isJson) {
+    data = await response.json();
+  } else {
+    data = await response.text();
+  }
+
+  if (!response.ok) {
+    const errorData = data as { message?: string } | undefined;
+    const apiError: ApiError = {
+      status: response.status,
+      message: errorData?.message || response.statusText || "Request failed",
+      details: data,
+    };
+
+    if (typeof window !== "undefined" && apiError.status === 401) {
+      // Clear auth on 401
+      setAuthToken(null);
+      setAuthUser(null);
     }
-    config.headers = config.headers ?? {};
-    config.headers["Content-Type"] =
-      config.headers["Content-Type"] ?? "application/json";
-    return config;
-  });
 
-  instance.interceptors.response.use(
-    (res) => res,
-    (error: AxiosError) => {
-      const errorData = error.response?.data as
-        | { message?: string }
-        | undefined;
-      const apiError: ApiError = {
-        status: (error.response?.status as number) || 0,
-        message: errorData?.message || error.message || "Request failed",
-        details: error.response?.data,
-      };
-      if (typeof window !== "undefined" && apiError.status === 401) {
-        // Clear auth on 401
-        setAuthToken(null);
-        setAuthUser(null);
-      }
-      return Promise.reject(apiError);
-    }
-  );
+    return Promise.reject(apiError);
+  }
 
-  return instance;
+  return data as T;
 }
 
-export const http = createHttpClient();
+function buildUrl(
+  url: string,
+  params?: Record<string, string | number | boolean>
+): string {
+  const fullUrl = url.startsWith("http") ? url : `${baseURL}${url}`;
+
+  if (!params || Object.keys(params).length === 0) {
+    return fullUrl;
+  }
+
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const separator = fullUrl.includes("?") ? "&" : "?";
+  return `${fullUrl}${separator}${searchParams.toString()}`;
+}
+
+function getHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (typeof window !== "undefined") {
+    const token = getAuthToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
 
 export const api = {
   get: async <T>(
     url: string,
     params?: Record<string, string | number | boolean>
-  ) => {
-    const res = await http.get<T>(url, { params });
-    return res.data;
+  ): Promise<T> => {
+    const fullUrl = buildUrl(url, params);
+    const response = await fetch(fullUrl, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+
+    return handleResponse<T>(response);
   },
-  post: async <T, B = unknown>(url: string, body?: B) => {
-    const res = await http.post<T>(url, body);
-    return res.data;
+
+  post: async <T, B = unknown>(url: string, body?: B): Promise<T> => {
+    const fullUrl = buildUrl(url);
+    const response = await fetch(fullUrl, {
+      method: "POST",
+      headers: getHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    return handleResponse<T>(response);
   },
-  put: async <T, B = unknown>(url: string, body?: B) => {
-    const res = await http.put<T>(url, body);
-    return res.data;
+
+  put: async <T, B = unknown>(url: string, body?: B): Promise<T> => {
+    const fullUrl = buildUrl(url);
+    const response = await fetch(fullUrl, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    return handleResponse<T>(response);
   },
-  patch: async <T, B = unknown>(url: string, body?: B) => {
-    const res = await http.patch<T>(url, body);
-    return res.data;
+
+  patch: async <T, B = unknown>(url: string, body?: B): Promise<T> => {
+    const fullUrl = buildUrl(url);
+    const response = await fetch(fullUrl, {
+      method: "PATCH",
+      headers: getHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    return handleResponse<T>(response);
   },
-  delete: async <T>(url: string) => {
-    const res = await http.delete<T>(url);
-    return res.data;
+
+  delete: async <T>(url: string): Promise<T> => {
+    const fullUrl = buildUrl(url);
+    const response = await fetch(fullUrl, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+
+    return handleResponse<T>(response);
   },
 };
