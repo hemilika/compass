@@ -4,15 +4,41 @@ import { Repository } from 'typeorm';
 import { Post } from './post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { Thread } from '../threads/thread.entity';
+import { User } from '../users/user.entity';
+import { Bu } from '../bu/bu.entity';
 
 @Injectable()
 export class PostsService {
     constructor(
         @InjectRepository(Post)
         private postsRepository: Repository<Post>,
+        @InjectRepository(Thread)
+        private threadsRepository: Repository<Thread>,
+        @InjectRepository(User)
+        private usersRepository: Repository<User>,
+        @InjectRepository(Bu)
+        private buRepository: Repository<Bu>,
     ) { }
 
     async create(createPostDto: CreatePostDto, authorId: number): Promise<Post> {
+        const author = await this.usersRepository.findOne({ where: { id: authorId } });
+        if (!author) {
+            throw new NotFoundException(`Author with ID ${authorId} not found`);
+        }
+
+        const thread = await this.threadsRepository.findOne({ where: { id: createPostDto.thread_id } });
+        if (!thread) {
+            throw new NotFoundException(`Thread with ID ${createPostDto.thread_id} not found`);
+        }
+
+        if (createPostDto.bu_id !== undefined && createPostDto.bu_id !== null) {
+            const bu = await this.buRepository.findOne({ where: { id: createPostDto.bu_id } });
+            if (!bu) {
+                throw new NotFoundException(`Business Unit with ID ${createPostDto.bu_id} not found`);
+            }
+        }
+
         const post = this.postsRepository.create({
             ...createPostDto,
             author_id: authorId,
