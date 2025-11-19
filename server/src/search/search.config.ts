@@ -10,4 +10,14 @@ export const SEARCH_CONFIG = {
         'the', 'and', 'or', 'in', 'on', 'to', 'of', 'for',
         'a', 'an', 'is', 'it', 'with', 'as', 'at'
     ]),
+    ai: {
+        maxContextDocuments: 20,
+        responseMaxLength: 500,
+        includeSnippetLength: 150,
+        suggestedFollowupsCount: 3,
+        rateLimit: {
+            requestsPerHour: 20,
+            requestsPerDay: 100,
+        },
+    },
 };

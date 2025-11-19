@@ -1,6 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, UseGuards, Request } from '@nestjs/common';
 import { SearchService } from './search.service';
 import { SearchQueryDto } from './dto/search-query.dto';
+import { AiSearchDto } from './dto/ai-search.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller()
 export class SearchController {
@@ -18,6 +20,12 @@ export class SearchController {
             page: q.page ? Number(q.page) : 1,
             limit: q.limit ? Number(q.limit) : 20,
         });
+    }
+
+    @Post('search/ai')
+    @UseGuards(JwtAuthGuard)
+    async aiSearch(@Body() aiSearchDto: AiSearchDto, @Request() req) {
+        return this.search.aiSearch(aiSearchDto, req.user.id);
     }
 
     @Get('health')
