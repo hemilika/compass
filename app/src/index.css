@@ -1,10 +1,13 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  --color-logo-primary: #ff851b;
+  --color-logo-text: #000000;
+  --color-logo-background: #ffffff;
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));

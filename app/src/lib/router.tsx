@@ -9,7 +9,7 @@ import HomePage from "@/pages/Home";
 import LoginPage from "@/pages/Login";
 import SignupPage from "@/pages/Signup";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import Shell from "@/components/ui/Shell";
+import Shell from "@/components/Shell";
 
 // Root route
 const rootRoute = createRootRoute({
@@ -23,8 +23,7 @@ const rootRoute = createRootRoute({
   ),
 });
 
-// Index route
-const indexRoute = createRoute({
+const homepageRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: HomePage,
@@ -45,7 +44,11 @@ const signupRoute = createRoute({
 });
 
 // Create the route tree
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute, signupRoute]);
+const routeTree = rootRoute.addChildren([
+  loginRoute,
+  signupRoute,
+  homepageRoute,
+]);
 
 // Create the router
 export const router = createRouter({ routeTree });

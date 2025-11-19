@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import { Card, CardHeader, CardContent } from "../components/ui/Card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "../components/ui/Input";
-import { Button } from "../components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 import { useNavigate, Link } from "@tanstack/react-router";
 

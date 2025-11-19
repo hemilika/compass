@@ -1,6 +1,6 @@
 import { useThemeMode, setThemeMode } from "@/hooks";
 import type { ThemeMode } from "@/store";
-import { Button } from "./Button";
+import { Button } from "@/components/ui/button";
 
 const modes: { mode: ThemeMode; label: string; icon: string }[] = [
   { mode: "light", label: "Light", icon: "☀️" },
