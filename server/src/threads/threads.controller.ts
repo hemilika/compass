@@ -43,8 +43,10 @@ export class ThreadsController {
         @Body() updateThreadDto: UpdateThreadDto,
         @Request() req,
     ) {
+        const thread = await this.threadsService.findOne(+id);
+
         // Only admins or thread moderators can update threads
-        if (!req.user.roles.includes('admin')) {
+        if (req.user.roles.includes('admin') || thread.creator_id === req.user.userId) {
             const isModerator = await this.threadsService.isUserModerator(+id, req.user.userId);
             if (!isModerator) {
                 throw new ForbiddenException('Only admins or thread moderators can update threads');
@@ -56,9 +58,9 @@ export class ThreadsController {
     @Delete(':id')
     async remove(@Param('id') id: string, @Request() req) {
         const thread = await this.threadsService.findOne(+id);
-        
+
         // Only admins or the thread creator can delete threads
-        if (!(req.user.roles.includes('admin') || thread.creator_id === req.user.userId)) {
+        if (req.user.roles.includes('admin') || thread.creator_id === req.user.userId) {
             throw new ForbiddenException('Only admins or the thread creator can delete threads');
         }
         return this.threadsService.remove(+id);
