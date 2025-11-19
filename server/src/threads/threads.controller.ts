@@ -45,12 +45,12 @@ export class ThreadsController {
     ) {
         const thread = await this.threadsService.findOne(+id);
 
-        // Only admins or thread moderators can update threads
-        if (req.user.roles.includes('admin') || thread.creator_id === req.user.userId) {
-            const isModerator = await this.threadsService.isUserModerator(+id, req.user.userId);
-            if (!isModerator) {
-                throw new ForbiddenException('Only admins or thread moderators can update threads');
-            }
+        // Only admins or thread owners can update threads
+
+        console.log(!req.user.roles.includes('admin'), +thread.creator_id, +req.user.userId)
+
+        if (!req.user.roles.includes('admin') && +thread.creator_id !== +req.user.userId) {
+            throw new ForbiddenException('Only admins or thread owners can update threads');
         }
         return this.threadsService.update(+id, updateThreadDto);
     }
@@ -60,7 +60,7 @@ export class ThreadsController {
         const thread = await this.threadsService.findOne(+id);
 
         // Only admins or the thread creator can delete threads
-        if (req.user.roles.includes('admin') || thread.creator_id === req.user.userId) {
+        if (!req.user.roles.includes('admin') && +thread.creator_id !== +req.user.userId) {
             throw new ForbiddenException('Only admins or the thread creator can delete threads');
         }
         return this.threadsService.remove(+id);
