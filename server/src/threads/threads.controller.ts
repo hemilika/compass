@@ -55,43 +55,28 @@ export class ThreadsController {
 
     @Delete(':id')
     async remove(@Param('id') id: string, @Request() req) {
-        // Only admins can delete threads
-        if (!req.user.roles.includes('admin')) {
-            throw new ForbiddenException('Only admins can delete threads');
+        const thread = await this.threadsService.findOne(+id);
+        
+        // Only admins or the thread creator can delete threads
+        if (!(req.user.roles.includes('admin') || thread.creator_id === req.user.userId)) {
+            throw new ForbiddenException('Only admins or the thread creator can delete threads');
         }
         return this.threadsService.remove(+id);
     }
 
-    @Post(':id/users/:userId')
-    async addUser(
+    @Post(':id/join')
+    async joinThread(
         @Param('id') id: string,
-        @Param('userId') userId: string,
-        @Body('role') role: string,
         @Request() req,
     ) {
-        // Only admins or thread moderators can add users
-        if (!req.user.roles.includes('admin')) {
-            const isModerator = await this.threadsService.isUserModerator(+id, req.user.userId);
-            if (!isModerator) {
-                throw new ForbiddenException('Only admins or thread moderators can add users');
-            }
-        }
-        return this.threadsService.addUserToThread(+id, +userId, role);
+        return this.threadsService.addUserToThread(+id, req.user.userId, 'member');
     }
 
-    @Delete(':id/users/:userId')
-    async removeUser(
+    @Delete(':id/leave')
+    async leaveThread(
         @Param('id') id: string,
-        @Param('userId') userId: string,
         @Request() req,
     ) {
-        // Only admins or thread moderators can remove users
-        if (!req.user.roles.includes('admin')) {
-            const isModerator = await this.threadsService.isUserModerator(+id, req.user.userId);
-            if (!isModerator) {
-                throw new ForbiddenException('Only admins or thread moderators can remove users');
-            }
-        }
-        return this.threadsService.removeUserFromThread(+id, +userId);
+        return this.threadsService.removeUserFromThread(+id, req.user.userId);
     }
 }

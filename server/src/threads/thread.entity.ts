@@ -28,6 +28,9 @@ export class Thread {
     @Column({ type: 'bigint', nullable: true })
     bu_id: number;
 
+    @Column({ type: 'bigint' })
+    creator_id: number;
+
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
 

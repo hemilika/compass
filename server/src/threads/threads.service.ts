@@ -33,7 +33,10 @@ export class ThreadsService {
       }
     }
 
-    const thread = this.threadsRepository.create(createThreadDto);
+    const thread = this.threadsRepository.create({
+      ...createThreadDto,
+      creator_id: userId,
+    });
     const savedThread = await this.threadsRepository.save(thread);
 
     // Add creator as a member
@@ -83,6 +86,18 @@ export class ThreadsService {
     userId: number,
     role: string = 'member',
   ): Promise<ThreadUser> {
+    // Check if thread exists
+    await this.findOne(threadId);
+
+    // Check if user is already a member
+    const existingMembership = await this.threadUsersRepository.findOne({
+      where: { thread_id: threadId, user_id: userId },
+    });
+
+    if (existingMembership) {
+      return existingMembership; // Already a member, return existing membership
+    }
+
     const threadUser = this.threadUsersRepository.create({
       user_id: userId,
       thread_id: threadId,
@@ -98,6 +113,10 @@ export class ThreadsService {
 
     if (threadUser) {
       await this.threadUsersRepository.remove(threadUser);
+    } else {
+      throw new NotFoundException(
+        `User ${userId} is not a member of thread ${threadId}`,
+      );
     }
   }
 
