@@ -4,7 +4,14 @@ import { useForm } from "@tanstack/react-form";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "../components/ui/Input";
 import { Button } from "@/components/ui/button";
-import { useSignup } from "@/hooks/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSignup, useBusinessUnits } from "@/hooks/api";
 import { useAuth } from "@/hooks/useAuth";
 
 type SignupFormData = {
@@ -13,6 +20,10 @@ type SignupFormData = {
   email: string;
   password: string;
   confirmPassword: string;
+  businessUnit: string;
+  techStack: string;
+  companyRole: string;
+  hobbies: string;
 };
 
 type PasswordStrength = {
@@ -130,6 +141,7 @@ const SignupPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const signupMutation = useSignup();
+  const { data: businessUnits } = useBusinessUnits();
 
   const form = useForm({
     defaultValues: {
@@ -138,14 +150,51 @@ const SignupPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      businessUnit: "",
+      techStack: "",
+      companyRole: "",
+      hobbies: "",
     } as SignupFormData,
     onSubmit: async ({ value }) => {
       try {
+        // Convert comma-separated strings to arrays, filtering out empty values
+        const techStackArray = value.techStack
+          ? value.techStack
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined;
+        const companyRoleArray = value.companyRole
+          ? value.companyRole
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined;
+        const hobbiesArray = value.hobbies
+          ? value.hobbies
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined;
+
         const response = await signupMutation.mutateAsync({
           email: value.email,
           password: value.password,
           firstname: value.firstName,
           lastname: value.lastName,
+          bu_id: value.businessUnit
+            ? parseInt(value.businessUnit, 10)
+            : undefined,
+          techstack:
+            techStackArray && techStackArray.length > 0
+              ? techStackArray
+              : undefined,
+          user_roles:
+            companyRoleArray && companyRoleArray.length > 0
+              ? companyRoleArray
+              : undefined,
+          hobbies:
+            hobbiesArray && hobbiesArray.length > 0 ? hobbiesArray : undefined,
         });
         // Auto-login after signup
         login(response.accessToken, response.user);
@@ -420,6 +469,130 @@ const SignupPage = () => {
                         {field.state.meta.errors[0]}
                       </p>
                     )}
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Field name="businessUnit">
+                {(field) => (
+                  <div>
+                    <Select
+                      value={field.state.value || ""}
+                      onValueChange={(value) => field.handleChange(value)}
+                    >
+                      <SelectTrigger
+                        className={
+                          field.state.meta.errors.length > 0
+                            ? "border-red-500"
+                            : ""
+                        }
+                      >
+                        <SelectValue placeholder="Select Business Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.isArray(businessUnits) &&
+                        businessUnits.length > 0 ? (
+                          businessUnits.map((bu) => (
+                            <SelectItem key={bu.id} value={bu.id.toString()}>
+                              {bu.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                            No business units available
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Field name="techStack">
+                {(field) => (
+                  <div>
+                    <Input
+                      type="text"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="e.g., React, Node.js, TypeScript (comma-separated)"
+                      className={
+                        field.state.meta.errors.length > 0
+                          ? "border-red-500"
+                          : ""
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      Separate multiple technologies with commas
+                    </p>
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Field name="companyRole">
+                {(field) => (
+                  <div>
+                    <Input
+                      type="text"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="e.g., Developer, Designer, Product Owner (comma-separated)"
+                      className={
+                        field.state.meta.errors.length > 0
+                          ? "border-red-500"
+                          : ""
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      Separate multiple roles with commas
+                    </p>
+                  </div>
+                )}
+              </form.Field>
+
+              <form.Field name="hobbies">
+                {(field) => (
+                  <div>
+                    <Input
+                      type="text"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="e.g., Reading, Gaming, Hiking (comma-separated)"
+                      className={
+                        field.state.meta.errors.length > 0
+                          ? "border-red-500"
+                          : ""
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {field.state.meta.errors[0]}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      Separate multiple hobbies with commas
+                    </p>
                   </div>
                 )}
               </form.Field>

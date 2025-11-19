@@ -16,10 +16,17 @@ const ThreadDetailPage = () => {
   const { data: thread, isLoading: threadLoading } = useThread(
     Number(threadId)
   );
-  const { data: posts, isLoading: postsLoading } = usePosts(
-    Number(threadId)
-  );
+  const { data: posts, isLoading: postsLoading } = usePosts(Number(threadId));
   const [createPostOpen, setCreatePostOpen] = useState(false);
+
+  // Ensure we have valid posts and deduplicate by id
+  const postsList = useMemo(() => {
+    if (!posts || !Array.isArray(posts)) return [];
+    const validPosts = posts.filter((post) => post && post.id);
+    return Array.from(
+      new Map(validPosts.map((post) => [post.id, post])).values()
+    );
+  }, [posts]);
 
   if (threadLoading) {
     return (
@@ -38,24 +45,12 @@ const ThreadDetailPage = () => {
   }
 
   const memberCount = thread.threadUsers?.length || 0;
-  // Ensure we have valid posts and deduplicate by id
-  const postsList = useMemo(() => {
-    if (!posts || !Array.isArray(posts)) return [];
-    const validPosts = posts.filter((post) => post && post.id);
-    return Array.from(
-      new Map(validPosts.map((post) => [post.id, post])).values()
-    );
-  }, [posts]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate({ to: "/" })}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/" })}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
@@ -96,10 +91,7 @@ const ThreadDetailPage = () => {
               </div>
             </div>
             {isAuthenticated && (
-              <Button
-                onClick={() => setCreatePostOpen(true)}
-                className="ml-4"
-              >
+              <Button onClick={() => setCreatePostOpen(true)} className="ml-4">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Post
               </Button>
@@ -111,9 +103,7 @@ const ThreadDetailPage = () => {
       {/* Posts Section */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">
-            Posts ({postsList.length})
-          </h2>
+          <h2 className="text-xl font-semibold">Posts ({postsList.length})</h2>
         </div>
 
         {postsLoading ? (
@@ -145,9 +135,7 @@ const ThreadDetailPage = () => {
                         })}
                       </span>
                     </div>
-                    <h3 className="mb-2 text-lg font-semibold">
-                      {post.title}
-                    </h3>
+                    <h3 className="mb-2 text-lg font-semibold">{post.title}</h3>
                     <p className="mb-3 line-clamp-3 text-sm text-muted-foreground">
                       {post.content}
                     </p>
@@ -190,4 +178,3 @@ const ThreadDetailPage = () => {
 };
 
 export default ThreadDetailPage;
-

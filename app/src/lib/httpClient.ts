@@ -6,7 +6,7 @@ export type ApiError = {
   details?: unknown;
 };
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const TOKEN_KEY = "auth_token";
 const USER_KEY = "auth_user";

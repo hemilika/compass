@@ -34,7 +34,7 @@ export interface ThreadUser {
   id: number;
   thread_id: number;
   user_id: number;
-  role: 'member' | 'moderator';
+  role: "member" | "moderator";
   user?: User;
   thread?: Thread;
 }
@@ -88,6 +88,7 @@ export interface SignupRequest {
   password: string;
   firstname?: string;
   lastname?: string;
+  bu_id?: number;
   techstack?: string[];
   user_roles?: string[];
   hobbies?: string[];
@@ -160,6 +161,5 @@ export interface UpdateBuRequest {
 }
 
 export interface AddUserToThreadRequest {
-  role: 'member' | 'moderator';
+  role: "member" | "moderator";
 }
-

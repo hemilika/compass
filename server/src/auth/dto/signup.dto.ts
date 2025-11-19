@@ -1,32 +1,44 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsArray } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 
 export class SignupDto {
-    @IsEmail()
-    @IsNotEmpty()
-    email: string;
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(6)
-    password: string;
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
 
-    @IsString()
-    @IsOptional()
-    firstname?: string;
+  @IsString()
+  @IsOptional()
+  firstname?: string;
 
-    @IsString()
-    @IsOptional()
-    lastname?: string;
+  @IsString()
+  @IsOptional()
+  lastname?: string;
 
-    @IsArray()
-    @IsOptional()
-    techstack?: string[];
+  @IsNumber()
+  @IsOptional()
+  bu_id?: number;
 
-    @IsArray()
-    @IsOptional()
-    user_roles?: string[];
+  @IsArray()
+  @IsOptional()
+  techstack?: string[];
 
-    @IsArray()
-    @IsOptional()
-    hobbies?: string[];
+  @IsArray()
+  @IsOptional()
+  user_roles?: string[];
+
+  @IsArray()
+  @IsOptional()
+  hobbies?: string[];
 }

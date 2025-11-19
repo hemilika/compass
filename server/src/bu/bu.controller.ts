@@ -1,12 +1,12 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    Delete,
-    UseGuards,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { BuService } from './bu.service';
 import { CreateBuDto } from './dto/create-bu.dto';
@@ -16,38 +16,37 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('bu')
-@UseGuards(JwtAuthGuard)
 export class BuController {
-    constructor(private readonly buService: BuService) { }
+  constructor(private readonly buService: BuService) {}
 
-    @UseGuards(RolesGuard)
-    @Roles('admin')
-    @Post()
-    create(@Body() createBuDto: CreateBuDto) {
-        return this.buService.create(createBuDto);
-    }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @Post()
+  create(@Body() createBuDto: CreateBuDto) {
+    return this.buService.create(createBuDto);
+  }
 
-    @Get()
-    findAll() {
-        return this.buService.findAll();
-    }
+  @Get()
+  findAll() {
+    return this.buService.findAll();
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.buService.findOne(+id);
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.buService.findOne(+id);
+  }
 
-    @UseGuards(RolesGuard)
-    @Roles('admin')
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updateBuDto: UpdateBuDto) {
-        return this.buService.update(+id, updateBuDto);
-    }
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateBuDto: UpdateBuDto) {
+    return this.buService.update(+id, updateBuDto);
+  }
 
-    @UseGuards(RolesGuard)
-    @Roles('admin')
-    @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.buService.remove(+id);
-    }
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.buService.remove(+id);
+  }
 }
