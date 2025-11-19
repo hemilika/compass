@@ -158,4 +158,3 @@ export const CreateThreadDialog = ({
     </Dialog>
   );
 };
-

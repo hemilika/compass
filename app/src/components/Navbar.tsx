@@ -34,7 +34,14 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
-              <Button onClick={logout} variant="outline" size="sm">
+              <Button
+                onClick={() => {
+                  logout();
+                  navigate({ to: "/login" });
+                }}
+                variant="outline"
+                size="sm"
+              >
                 Sign out
               </Button>
             </div>

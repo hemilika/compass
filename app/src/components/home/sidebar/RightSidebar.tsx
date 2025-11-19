@@ -1,14 +1,12 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile, useThreads, useBusinessUnits } from "@/hooks/api";
 
 export const RightSidebar = () => {
-  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { data: profile } = useUserProfile();
   const { data: threads, isLoading: threadsLoading } = useThreads();
@@ -43,25 +41,6 @@ export const RightSidebar = () => {
                   {displayUser.email}
                 </p>
               </div>
-            </div>
-            <Separator className="my-3" />
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs"
-                onClick={() => navigate({ to: "/profile" })}
-              >
-                Profile
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs"
-                onClick={() => navigate({ to: "/settings" })}
-              >
-                Settings
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -172,4 +151,3 @@ export const RightSidebar = () => {
     </aside>
   );
 };
-
