@@ -4,34 +4,25 @@ import { Input } from "../components/ui/Input";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useLogin } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
-
-type LoginFormData = {
-  email: string;
-  password: string;
-};
+import { useAuth } from "@/hooks/use-auth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const loginMutation = useLogin();
 
-  const form = useForm<LoginFormData>({
+  const form = useForm({
     defaultValues: {
       email: "",
       password: "",
     },
     onSubmit: async ({ value }) => {
-      try {
-        const response = await loginMutation.mutateAsync({
-          email: value.email,
-          password: value.password,
-        });
-        login(response.accessToken, response.user);
-        navigate({ to: "/" });
-      } catch {
-        // Error is handled by the mutation hook
-      }
+      const response = await loginMutation.mutateAsync({
+        email: value.email,
+        password: value.password,
+      });
+      login(response.accessToken, response.user);
+      navigate({ to: "/" });
     },
   });
 

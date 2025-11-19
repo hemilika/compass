@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useThread, usePosts } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { CreatePostDialog } from "@/components/home/sidebar/CreatePostDialog";
 
 const ThreadDetailPage = () => {
-  const { threadId } = useParams({ from: "/threads/$threadId" });
+  const { threadId } = useParams({ strict: false });
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { data: thread, isLoading: threadLoading } = useThread(
@@ -20,6 +20,7 @@ const ThreadDetailPage = () => {
   const [createPostOpen, setCreatePostOpen] = useState(false);
 
   // Ensure we have valid posts and deduplicate by id
+  // This hook must be called before any early returns
   const postsList = useMemo(() => {
     if (!posts || !Array.isArray(posts)) return [];
     const validPosts = posts.filter((post) => post && post.id);

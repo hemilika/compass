@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();

@@ -19,6 +19,10 @@ import type {
   CreateBuRequest,
   UpdateBuRequest,
   AddUserToThreadRequest,
+  SearchQueryParams,
+  SearchResponse,
+  AiSearchRequest,
+  AiSearchResponse,
 } from "@/types/api";
 
 // Auth API
@@ -191,6 +195,28 @@ export const upvotesApi = {
 
   getMyUpvotes: async (): Promise<Upvote[]> => {
     return api.get<Upvote[]>("/upvotes/me");
+  },
+};
+
+// Search API
+export const searchApi = {
+  search: async (params: SearchQueryParams): Promise<SearchResponse> => {
+    const queryParams: Record<string, string> = {
+      query: params.query,
+    };
+    if (params.type) queryParams.type = params.type;
+    if (params.match) queryParams.match = params.match;
+    if (params.buId) queryParams.buId = params.buId.toString();
+    if (params.threadId) queryParams.threadId = params.threadId.toString();
+    if (params.sort) queryParams.sort = params.sort;
+    if (params.page) queryParams.page = params.page.toString();
+    if (params.limit) queryParams.limit = params.limit.toString();
+
+    return api.get<SearchResponse>("/search", queryParams);
+  },
+
+  aiSearch: async (data: AiSearchRequest): Promise<AiSearchResponse> => {
+    return api.post<AiSearchResponse, AiSearchRequest>("/search/ai", data);
   },
 };
 

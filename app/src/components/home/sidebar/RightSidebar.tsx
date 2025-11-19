@@ -3,7 +3,7 @@ import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { useUserProfile, useThreads, useBusinessUnits } from "@/hooks/api";
 
 export const RightSidebar = () => {

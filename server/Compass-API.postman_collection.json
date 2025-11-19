@@ -807,6 +807,248 @@
         }
       ],
       "description": "Upvote management endpoints"
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Traditional Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/search?query=TypeScript&sort=relevance&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "TypeScript"
+                },
+                {
+                  "key": "sort",
+                  "value": "relevance"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "type",
+                  "value": "post",
+                  "disabled": true
+                },
+                {
+                  "key": "threadId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Traditional keyword-based search"
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - TypeScript Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What do people think about TypeScript?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search asking about TypeScript opinions. Based on seed data, should find John's post 'Why I love TypeScript' and related replies.\n\nExpected Response:\n{\n  \"answer\": \"People generally love TypeScript! Check out <a href='/posts/3' class='post-link' data-post-id='3'>Why I love TypeScript</a> where John discusses how type safety catches bugs before runtime. The replies mention the learning curve but agree it's worth it.\",\n  \"sources\": [{\"id\": \"post_3\", \"type\": \"post\", \"postId\": 3, \"title\": \"Why I love TypeScript\", \"url\": \"/posts/3\", ...}],\n  \"suggestedFollowups\": [\"What are TypeScript best practices?\", \"How do I migrate from JavaScript to TypeScript?\"],\n  \"metadata\": {\"totalSources\": 2, \"modelUsed\": \"gpt-4o\"}\n}"
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - Code Review Practices",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"How can I improve my code review process?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search about code review best practices. Should find Admin's post 'Code Review Best Practices' with tips on constructive feedback."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - Clean Code Principles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What are the most important clean code principles?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search about clean code. Should find Jane's post 'Clean Code Principles' and replies mentioning DRY principle, meaningful names, single responsibility."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - Vue vs React",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Should I use React or Vue for my next project?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search comparing frameworks. Should find Bob's post 'Vue 3 vs React - Your opinion?' and John's reply about React ecosystem vs Vue simplicity.\n\nExpected Response with HTML links:\n{\n  \"answer\": \"The main trade-off is ecosystem vs simplicity. <a href='/posts/4' class='post-link' data-post-id='4'>Vue 3 vs React - Your opinion?</a> discusses this. React has a larger ecosystem for big projects, while Vue's simplicity shines for smaller projects. John mentions in <a href='/posts/4#reply-5' class='reply-link' data-reply-id='5'>this reply</a> that React's ecosystem is larger but Vue is easier for MVPs.\",\n  \"sources\": [...],\n  \"suggestedFollowups\": [...]\n}"
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - Dark Mode Feature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Is there a dark mode feature planned?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search about dark mode. Should find Alice's post 'Feature Request: Dark Mode' with Admin's reply confirming it's on the roadmap."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - With Thread Filter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What discussions are happening?\",\n  \"threadId\": \"2\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search filtered to 'Tech Stack Discussions' thread (ID: 2). Should find TypeScript and Vue vs React posts."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - With Conversation History",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"What about testing practices?\",\n  \"conversationHistory\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"What are the most important clean code principles?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"content\": \"Based on the available posts, the most important clean code principles include meaningful variable names, single responsibility principle, and writing tests. The DRY (Don't Repeat Yourself) principle is also emphasized.\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "Multi-turn AI conversation. Continues from previous question about clean code to ask about testing. Should reference the testing mention in previous context."
+          },
+          "response": []
+        },
+        {
+          "name": "AI Search - Introduction Posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"Who are the new members that recently joined?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/search/ai",
+              "host": ["{{base_url}}"],
+              "path": ["search", "ai"]
+            },
+            "description": "AI search for introductions. Should find John's 'Hello everyone!' and Jane's 'New member introduction' posts with their tech stacks."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["stats"]
+            },
+            "description": "Get search index statistics"
+          },
+          "response": []
+        }
+      ],
+      "description": "Search endpoints - Traditional keyword search and AI-powered conversational search"
     }
   ]
 }

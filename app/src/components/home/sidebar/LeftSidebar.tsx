@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useThreads } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { CreatePostDialog } from "./CreatePostDialog";
 import { CreateThreadDialog } from "./CreateThreadDialog";
 
@@ -130,4 +130,3 @@ export const LeftSidebar = () => {
     </aside>
   );
 };
-

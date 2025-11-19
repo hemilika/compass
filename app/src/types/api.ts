@@ -163,3 +163,75 @@ export interface UpdateBuRequest {
 export interface AddUserToThreadRequest {
   role: "member" | "moderator";
 }
+
+// Search Types
+export interface SearchQueryParams {
+  query: string;
+  type?: "post" | "reply";
+  match?: "or" | "and" | "exact";
+  buId?: number;
+  threadId?: number;
+  sort?: "relevance" | "new" | "top";
+  page?: number;
+  limit?: number;
+}
+
+export interface SearchResult {
+  id: string;
+  type: "post" | "reply";
+  buId?: number | null;
+  threadId?: number | null;
+  threadName?: string | null;
+  buName?: string | null;
+  postId: number;
+  title?: string;
+  createdAt: string;
+  score: number;
+  relevance: number;
+  snippet: string;
+}
+
+export interface SearchResponse {
+  total: number;
+  page: number;
+  limit: number;
+  results: SearchResult[];
+}
+
+export interface AiSearchRequest {
+  query: string;
+  conversationHistory?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
+  buId?: number;
+  threadId?: number;
+}
+
+export interface AiSearchSource {
+  id: string;
+  type: "post" | "reply";
+  postId: number;
+  threadId: number | null;
+  threadName: string | null;
+  buId: number | null;
+  buName: string | null;
+  title?: string;
+  snippet: string;
+  url: string;
+  authorName: string;
+  upvoteCount: number;
+  createdAt: string;
+  relevanceScore: number;
+}
+
+export interface AiSearchResponse {
+  answer: string;
+  sources: AiSearchSource[];
+  suggestedFollowups: string[];
+  metadata: {
+    totalSources: number;
+    modelUsed: string;
+    queryProcessedAt: string;
+  };
+}

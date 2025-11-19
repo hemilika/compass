@@ -19,7 +19,7 @@ import {
   useRemovePostUpvote,
   useMyUpvotes,
 } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import type { Post } from "@/types/api";
 
 type SortOption = "hot" | "new" | "top";
@@ -95,11 +95,13 @@ export const Posts = () => {
           const aScore =
             a.upvote_count /
             (1 +
-              (Date.now() - new Date(a.created_at).getTime()) / (1000 * 60 * 60));
+              (Date.now() - new Date(a.created_at).getTime()) /
+                (1000 * 60 * 60));
           const bScore =
             b.upvote_count /
             (1 +
-              (Date.now() - new Date(b.created_at).getTime()) / (1000 * 60 * 60));
+              (Date.now() - new Date(b.created_at).getTime()) /
+                (1000 * 60 * 60));
           return bScore - aScore;
         });
       default:
@@ -126,7 +128,9 @@ export const Posts = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-destructive">Failed to load posts. Please try again later.</p>
+        <p className="text-destructive">
+          Failed to load posts. Please try again later.
+        </p>
       </div>
     );
   }
@@ -134,7 +138,9 @@ export const Posts = () => {
   if (!sortedPosts || sortedPosts.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">No posts found. Be the first to create one!</p>
+        <p className="text-muted-foreground">
+          No posts found. Be the first to create one!
+        </p>
       </div>
     );
   }
@@ -195,10 +201,17 @@ export const Posts = () => {
                       className={cn(
                         "h-8 w-8 rounded-sm",
                         isUpvoted && "text-primary",
-                        (!isAuthenticated || upvoteMutation.isPending || removeUpvoteMutation.isPending) && "opacity-50 cursor-not-allowed"
+                        (!isAuthenticated ||
+                          upvoteMutation.isPending ||
+                          removeUpvoteMutation.isPending) &&
+                          "opacity-50 cursor-not-allowed"
                       )}
                       onClick={() => handleUpvote(post.id)}
-                      disabled={!isAuthenticated || upvoteMutation.isPending || removeUpvoteMutation.isPending}
+                      disabled={
+                        !isAuthenticated ||
+                        upvoteMutation.isPending ||
+                        removeUpvoteMutation.isPending
+                      }
                     >
                       <ChevronUp className="h-5 w-5" />
                     </Button>
@@ -226,7 +239,10 @@ export const Posts = () => {
                     </div>
 
                     {/* Post Title */}
-                    <Link to={`/posts/${post.id}`}>
+                    <Link
+                      to={`/posts/$postId`}
+                      params={{ postId: post.id.toString() }}
+                    >
                       <h3 className="mb-2 text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
                         {post.title}
                       </h3>
@@ -247,7 +263,8 @@ export const Posts = () => {
                             alt={`Post image ${idx + 1}`}
                             className="w-full rounded-lg object-cover max-h-64"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = "none";
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
                             }}
                           />
                         ))}

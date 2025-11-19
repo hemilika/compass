@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useUserProfile, useUpdateUser, usePosts } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import type { UpdateUserRequest } from "@/types/api";
 
@@ -73,11 +73,7 @@ const ProfilePage = () => {
     <div className="mx-auto max-w-4xl space-y-4">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate({ to: "/" })}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/" })}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
@@ -139,7 +135,8 @@ const ProfilePage = () => {
               </h2>
               <p className="text-muted-foreground">{displayUser.email}</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {Array.isArray(displayUser.roles) && displayUser.roles.length > 0
+                {Array.isArray(displayUser.roles) &&
+                displayUser.roles.length > 0
                   ? displayUser.roles.map((role) => (
                       <Badge key={role} variant="secondary">
                         {role}
@@ -374,9 +371,7 @@ const ProfilePage = () => {
                       </p>
                       <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                         <span>{post.upvote_count} upvotes</span>
-                        <span>
-                          {post.replies?.length || 0} comments
-                        </span>
+                        <span>{post.replies?.length || 0} comments</span>
                         <span>
                           {formatDistanceToNow(new Date(post.created_at), {
                             addSuffix: true,
@@ -400,4 +395,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

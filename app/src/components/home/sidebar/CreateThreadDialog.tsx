@@ -114,21 +114,27 @@ export const CreateThreadDialog = ({
               <div className="space-y-2">
                 <Label htmlFor="bu_id">Business Unit (Optional)</Label>
                 <Select
-                  value={field.state.value?.toString() || ""}
+                  value={field.state.value?.toString() || "none"}
                   onValueChange={(value) =>
-                    field.handleChange(value ? parseInt(value, 10) : undefined)
+                    field.handleChange(
+                      value && value !== "none"
+                        ? parseInt(value, 10)
+                        : undefined
+                    )
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a business unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
-                    {businessUnits?.map((bu) => (
-                      <SelectItem key={bu.id} value={bu.id.toString()}>
-                        {bu.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="none">None</SelectItem>
+                    {Array.isArray(businessUnits) && businessUnits.length > 0
+                      ? businessUnits.map((bu) => (
+                          <SelectItem key={bu.id} value={bu.id.toString()}>
+                            {bu.name}
+                          </SelectItem>
+                        ))
+                      : null}
                   </SelectContent>
                 </Select>
               </div>

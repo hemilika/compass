@@ -16,6 +16,7 @@ import PopularPage from "@/pages/Popular";
 import AllPage from "@/pages/All";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Shell from "@/components/Shell";
+import { WithSidebars } from "@/components/layouts/WithSidebars";
 
 // Root route
 const rootRoute = createRootRoute({
@@ -29,64 +30,65 @@ const rootRoute = createRootRoute({
   ),
 });
 
-const homepageRoute = createRoute({
+// Layout route with sidebars for routes that need them
+const withSidebarsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/",
-  component: HomePage,
+  id: "with-sidebars",
+  component: WithSidebars,
 });
 
-// Login route
+// Routes without sidebars (direct children of root)
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
   component: LoginPage,
 });
 
-// Signup route
 const signupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/signup",
   component: SignupPage,
 });
 
-// Post detail route
-const postDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/posts/$postId",
-  component: PostDetailPage,
-});
-
-// Profile route
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/profile",
   component: ProfilePage,
 });
 
-// Settings route
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
   component: SettingsPage,
 });
 
-// Thread detail route
+// Routes with sidebars (children of withSidebarsRoute)
+const homepageRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/",
+  component: HomePage,
+});
+
+const postDetailRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/posts/$postId",
+  component: PostDetailPage,
+});
+
 const threadDetailRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => withSidebarsRoute,
   path: "/threads/$threadId",
   component: ThreadDetailPage,
 });
 
-// Popular route
 const popularRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => withSidebarsRoute,
   path: "/popular",
   component: PopularPage,
 });
 
-// All route
 const allRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => withSidebarsRoute,
   path: "/all",
   component: AllPage,
 });
@@ -95,13 +97,15 @@ const allRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
-  homepageRoute,
-  postDetailRoute,
   profileRoute,
   settingsRoute,
-  threadDetailRoute,
-  popularRoute,
-  allRoute,
+  withSidebarsRoute.addChildren([
+    homepageRoute,
+    postDetailRoute,
+    threadDetailRoute,
+    popularRoute,
+    allRoute,
+  ]),
 ]);
 
 // Create the router

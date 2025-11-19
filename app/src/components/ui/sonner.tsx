@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
-import { Toaster as Sonner } from "sonner"
-import { useTheme } from "@/theme/use-theme"
+import { Toaster as Sonner } from "sonner";
+import { useTheme } from "@/hooks/use-theme";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { mode } = useTheme()
+  const { mode } = useTheme();
   // Map theme mode to sonner theme
-  const theme = mode === "system" ? "system" : mode === "dark" ? "dark" : "light"
+  const theme =
+    mode === "system" ? "system" : mode === "dark" ? "dark" : "light";
 
   return (
     <Sonner
@@ -27,7 +28,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

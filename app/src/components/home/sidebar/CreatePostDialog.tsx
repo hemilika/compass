@@ -118,20 +118,20 @@ export const CreatePostDialog = ({
                     <SelectValue placeholder="Select a thread" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.isArray(threads) && threads.length > 0
-                      ? threads.map((thread) => (
-                          <SelectItem
-                            key={thread.id}
-                            value={thread.id.toString()}
-                          >
-                            {thread.name}
-                          </SelectItem>
-                        ))
-                      : (
-                          <SelectItem value="" disabled>
-                            No threads available
-                          </SelectItem>
-                        )}
+                    {Array.isArray(threads) && threads.length > 0 ? (
+                      threads.map((thread) => (
+                        <SelectItem
+                          key={thread.id}
+                          value={thread.id.toString()}
+                        >
+                          {thread.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        No threads available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 {defaultThreadId && (
@@ -153,12 +153,12 @@ export const CreatePostDialog = ({
               <div className="space-y-2">
                 <Label htmlFor="bu_id">Business Unit (Optional)</Label>
                 <Select
-                  value={
-                    field.state.value?.toString() || "none"
-                  }
+                  value={field.state.value?.toString() || "none"}
                   onValueChange={(value) =>
                     field.handleChange(
-                      value && value !== "none" ? parseInt(value, 10) : undefined
+                      value && value !== "none"
+                        ? parseInt(value, 10)
+                        : undefined
                     )
                   }
                 >
@@ -259,9 +259,7 @@ export const CreatePostDialog = ({
             </Button>
             <Button
               type="submit"
-              disabled={
-                createPostMutation.isPending || !form.state.canSubmit
-              }
+              disabled={createPostMutation.isPending || !form.state.canSubmit}
             >
               {createPostMutation.isPending ? "Creating..." : "Create Post"}
             </Button>
@@ -271,4 +269,3 @@ export const CreatePostDialog = ({
     </Dialog>
   );
 };
-

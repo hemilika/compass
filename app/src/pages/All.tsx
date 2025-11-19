@@ -19,9 +19,7 @@ import {
   useRemovePostUpvote,
   useMyUpvotes,
 } from "@/hooks/api";
-import { useAuth } from "@/hooks/useAuth";
-import { LeftSidebar } from "@/components/home/sidebar/LeftSidebar";
-import { RightSidebar } from "@/components/home/sidebar/RightSidebar";
+import { useAuth } from "@/hooks/use-auth";
 import type { Post } from "@/types/api";
 
 const AllPage = () => {
@@ -121,12 +119,7 @@ const AllPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-2">
-          <LeftSidebar />
-        </div>
-        <div className="col-span-7 space-y-4">
+    <div className="space-y-4">
           <div className="mb-4">
             <h1 className="text-2xl font-bold">All Posts</h1>
             <p className="text-sm text-muted-foreground">
@@ -273,11 +266,6 @@ const AllPage = () => {
               );
             })}
           </div>
-        </div>
-        <div className="col-span-3">
-          <RightSidebar />
-        </div>
-      </div>
     </div>
   );
 };
