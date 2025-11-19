@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile, useThreads, useBusinessUnits } from "@/hooks/api";
 
 export const RightSidebar = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { data: profile } = useUserProfile();
   const { data: threads, isLoading: threadsLoading } = useThreads();
@@ -22,7 +23,10 @@ export const RightSidebar = () => {
     <aside className="sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto space-y-4">
       {/* User Card */}
       {isAuthenticated && displayUser && (
-        <Card>
+        <Card
+          className="cursor-pointer transition-colors hover:bg-accent"
+          onClick={() => navigate({ to: "/settings" })}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
@@ -103,7 +107,8 @@ export const RightSidebar = () => {
                 <div key={thread.id}>
                   <div className="flex items-center justify-between">
                     <Link
-                      to={`/threads/${thread.id}`}
+                      to="/threads/$threadId"
+                      params={{ threadId: thread.id.toString() }}
                       className="flex items-center gap-2 flex-1 hover:opacity-80 transition-opacity"
                     >
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
