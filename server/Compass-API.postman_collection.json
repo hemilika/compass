@@ -868,7 +868,7 @@
               "host": ["{{base_url}}"],
               "path": ["search", "ai"]
             },
-            "description": "AI search asking about TypeScript opinions. Based on seed data, should find John's post 'Why I love TypeScript' and related replies.\n\nExpected Response:\n{\n  \"answer\": \"People generally love TypeScript! Check out <a href='/posts/3' class='post-link' data-post-id='3'>Why I love TypeScript</a> where John discusses how type safety catches bugs before runtime. The replies mention the learning curve but agree it's worth it.\",\n  \"sources\": [{\"id\": \"post_3\", \"type\": \"post\", \"postId\": 3, \"title\": \"Why I love TypeScript\", \"url\": \"/posts/3\", ...}],\n  \"suggestedFollowups\": [\"What are TypeScript best practices?\", \"How do I migrate from JavaScript to TypeScript?\"],\n  \"metadata\": {\"totalSources\": 2, \"modelUsed\": \"gpt-4o\"}\n}"
+            "description": "AI search asking about TypeScript opinions. Based on seed data, should find John's post 'Why I love TypeScript' and related replies.\n\nExpected Response:\n{\n  \"answer\": \"People generally love TypeScript! Check out <a href='/posts/3' class='post-link' data-post-id='3'>Why I love TypeScript</a> where John discusses how type safety catches bugs before runtime. The replies mention the learning curve but agree it's worth it.\",\n  \"sources\": [{\"id\": \"post_3\", \"type\": \"post\", \"postId\": 3, \"title\": \"Why I love TypeScript\", \"url\": \"/posts/3\", ...}],\n  \"suggestedFollowups\": [\"What are TypeScript best practices?\", \"How do I migrate from JavaScript to TypeScript?\"],\n  \"metadata\": {\"totalSources\": 2, \"modelUsed\": \"gpt-5-nano\"}\n}"
           },
           "response": []
         },
@@ -1049,6 +1049,170 @@
         }
       ],
       "description": "Search endpoints - Traditional keyword search and AI-powered conversational search"
+    },
+    {
+      "name": "Culture Builder",
+      "item": [
+        {
+          "name": "Generate Appreciation Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"days\": 7,\n  \"autoPost\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/culture-builder/generate/appreciation",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "generate", "appreciation"]
+            },
+            "description": "Manually generate a weekly appreciation thread (Admin only). Recognizes top contributors from the past N days."
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"engagement\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/culture-builder/generate/challenge",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "generate", "challenge"]
+            },
+            "description": "Manually generate a community challenge (Admin only). Types: engagement, cross-bu, mentorship, knowledge-share"
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Connection Suggestions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/generate/connections",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "generate", "connections"]
+            },
+            "description": "Manually generate cross-BU connection suggestions (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Weekly Appreciation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/trigger/weekly-appreciation",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "trigger", "weekly-appreciation"]
+            },
+            "description": "Manually trigger the weekly appreciation cron job (Admin only, for testing)"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Weekly Challenge",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/trigger/weekly-challenge",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "trigger", "weekly-challenge"]
+            },
+            "description": "Manually trigger the weekly challenge cron job (Admin only, for testing)"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Connection Suggestions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/trigger/connection-suggestions",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "trigger", "connection-suggestions"]
+            },
+            "description": "Manually trigger the connection suggestions cron job (Admin only, for testing)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Weekly Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/analytics/weekly",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "analytics", "weekly"]
+            },
+            "description": "Get comprehensive weekly analytics including top contributors, total posts/replies, active users and BUs"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Top Contributors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/analytics/top-contributors",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "analytics", "top-contributors"]
+            },
+            "description": "Get top contributors from the past 7 days with detailed statistics"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cross-BU Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/analytics/connections",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "analytics", "connections"]
+            },
+            "description": "Get potential cross-BU connections based on shared interests"
+          },
+          "response": []
+        },
+        {
+          "name": "Culture Builder Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/health",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "health"]
+            },
+            "description": "Check if the Culture Builder service is running"
+          },
+          "response": []
+        }
+      ],
+      "description": "AI-powered culture building endpoints - Weekly appreciation, challenges, and connection suggestions"
     }
   ]
 }
