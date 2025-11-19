@@ -1,0 +1,812 @@
+{
+  "info": {
+    "_postman_id": "compass-api-collection",
+    "name": "Compass API",
+    "description": "Complete API collection for Compass - A NestJS forum platform with JWT authentication",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Signup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.accessToken) {",
+                  "        pm.collectionVariables.set('access_token', response.accessToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@compass.com\",\n  \"password\": \"password123\",\n  \"firstname\": \"New\",\n  \"lastname\": \"User\",\n  \"techstack\": [\"React\", \"Node.js\", \"TypeScript\"],\n  \"user_roles\": [\"DEV\", \"DESIGNER\"],\n  \"hobbies\": [\"coding\", \"reading\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "signup"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.accessToken);",
+                  "    console.log('Token saved:', response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@compass.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password to receive JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Login as User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@compass.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login as regular user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for signup and login"
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            },
+            "description": "Retrieve all users (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            },
+            "description": "Get a specific user by their ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/me/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "profile"]
+            },
+            "description": "Get the currently authenticated user's profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"John\",\n  \"lastname\": \"Updated\",\n  \"techstack\": [\"Vue\", \"Python\", \"Django\"],\n  \"user_roles\": [\"PO\", \"DEV\"],\n  \"hobbies\": [\"gaming\", \"hiking\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/2",
+              "host": ["{{base_url}}"],
+              "path": ["users", "2"]
+            },
+            "description": "Update user profile (owner or admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate User",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/2/deactivate",
+              "host": ["{{base_url}}"],
+              "path": ["users", "2", "deactivate"]
+            },
+            "description": "Deactivate a user account (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Activate User",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/2/activate",
+              "host": ["{{base_url}}"],
+              "path": ["users", "2", "activate"]
+            },
+            "description": "Activate a user account (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/2",
+              "host": ["{{base_url}}"],
+              "path": ["users", "2"]
+            },
+            "description": "Delete a user (admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Business Units",
+      "item": [
+        {
+          "name": "Create BU",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bu",
+              "host": ["{{base_url}}"],
+              "path": ["bu"]
+            },
+            "description": "Create a new business unit (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All BUs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bu",
+              "host": ["{{base_url}}"],
+              "path": ["bu"]
+            },
+            "description": "Get all business units"
+          },
+          "response": []
+        },
+        {
+          "name": "Get BU by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bu/1",
+              "host": ["{{base_url}}"],
+              "path": ["bu", "1"]
+            },
+            "description": "Get a specific business unit by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update BU",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Engineering Department\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bu/1",
+              "host": ["{{base_url}}"],
+              "path": ["bu", "1"]
+            },
+            "description": "Update a business unit (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete BU",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/bu/1",
+              "host": ["{{base_url}}"],
+              "path": ["bu", "1"]
+            },
+            "description": "Delete a business unit (admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Business unit management endpoints"
+    },
+    {
+      "name": "Threads",
+      "item": [
+        {
+          "name": "Create Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Technical Discussion\",\n  \"description\": \"A place to discuss technical topics and share knowledge\",\n  \"bu_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/threads",
+              "host": ["{{base_url}}"],
+              "path": ["threads"]
+            },
+            "description": "Create a new discussion thread"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Threads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads",
+              "host": ["{{base_url}}"],
+              "path": ["threads"]
+            },
+            "description": "Get all discussion threads"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Thread by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads/1",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "1"]
+            },
+            "description": "Get a specific thread with members"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Thread",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Thread Name\",\n  \"description\": \"Updated description for the thread\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/threads/1",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "1"]
+            },
+            "description": "Update thread details (admin or moderator only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Thread",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads/1",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "1"]
+            },
+            "description": "Delete a thread (admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Add User to Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"member\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/threads/1/users/2",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "1", "users", "2"]
+            },
+            "description": "Add a user to a thread (admin or moderator only). Role can be 'member' or 'moderator'"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove User from Thread",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/threads/1/users/2",
+              "host": ["{{base_url}}"],
+              "path": ["threads", "1", "users", "2"]
+            },
+            "description": "Remove a user from a thread (admin or moderator only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Thread management endpoints"
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"thread_id\": 1,\n  \"bu_id\": 1,\n  \"title\": \"My First Post\",\n  \"content\": \"This is the content of my first post. It contains useful information.\",\n  \"icon_url\": \"https://example.com/icon.png\",\n  \"image_urls\": [\n    \"https://example.com/image1.png\",\n    \"https://example.com/image2.png\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts",
+              "host": ["{{base_url}}"],
+              "path": ["posts"]
+            },
+            "description": "Create a new post in a thread"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts",
+              "host": ["{{base_url}}"],
+              "path": ["posts"]
+            },
+            "description": "Get all posts"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Posts by Thread",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts?threadId=1",
+              "host": ["{{base_url}}"],
+              "path": ["posts"],
+              "query": [
+                {
+                  "key": "threadId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Get all posts in a specific thread"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Post by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "1"]
+            },
+            "description": "Get a specific post with its replies"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Post Title\",\n  \"content\": \"This is the updated content of the post.\",\n  \"image_urls\": [\n    \"https://example.com/new-image.png\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "1"]
+            },
+            "description": "Update a post (owner or admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["posts", "1"]
+            },
+            "description": "Delete a post (owner or admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Post management endpoints"
+    },
+    {
+      "name": "Replies",
+      "item": [
+        {
+          "name": "Create Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"post_id\": 1,\n  \"parent_reply_id\": null,\n  \"content\": \"This is my reply to the post. Great insights!\",\n  \"image_urls\": [\n    \"https://example.com/reply-image.png\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/replies",
+              "host": ["{{base_url}}"],
+              "path": ["replies"]
+            },
+            "description": "Create a reply to a post. Set parent_reply_id to reply to another reply (nested)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Nested Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"post_id\": 1,\n  \"parent_reply_id\": 1,\n  \"content\": \"This is a nested reply responding to another reply.\",\n  \"image_urls\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/replies",
+              "host": ["{{base_url}}"],
+              "path": ["replies"]
+            },
+            "description": "Create a nested reply by specifying parent_reply_id"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Replies by Post",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/replies?postId=1",
+              "host": ["{{base_url}}"],
+              "path": ["replies"],
+              "query": [
+                {
+                  "key": "postId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Get all replies for a specific post"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reply by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/replies/1",
+              "host": ["{{base_url}}"],
+              "path": ["replies", "1"]
+            },
+            "description": "Get a specific reply by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Reply",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Updated reply content with new information.\",\n  \"image_urls\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/replies/1",
+              "host": ["{{base_url}}"],
+              "path": ["replies", "1"]
+            },
+            "description": "Update a reply (owner or admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Reply",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/replies/1",
+              "host": ["{{base_url}}"],
+              "path": ["replies", "1"]
+            },
+            "description": "Delete a reply (owner or admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Reply management endpoints"
+    },
+    {
+      "name": "Upvotes",
+      "item": [
+        {
+          "name": "Upvote Post",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/upvotes/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["upvotes", "posts", "1"]
+            },
+            "description": "Upvote a post"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Upvote from Post",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/upvotes/posts/1",
+              "host": ["{{base_url}}"],
+              "path": ["upvotes", "posts", "1"]
+            },
+            "description": "Remove upvote from a post"
+          },
+          "response": []
+        },
+        {
+          "name": "Upvote Reply",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/upvotes/replies/1",
+              "host": ["{{base_url}}"],
+              "path": ["upvotes", "replies", "1"]
+            },
+            "description": "Upvote a reply"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Upvote from Reply",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/upvotes/replies/1",
+              "host": ["{{base_url}}"],
+              "path": ["upvotes", "replies", "1"]
+            },
+            "description": "Remove upvote from a reply"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Upvotes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/upvotes/me",
+              "host": ["{{base_url}}"],
+              "path": ["upvotes", "me"]
+            },
+            "description": "Get all upvotes by the current user"
+          },
+          "response": []
+        }
+      ],
+      "description": "Upvote management endpoints"
+    }
+  ]
+}
