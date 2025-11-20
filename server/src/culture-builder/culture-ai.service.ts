@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatOpenAI } from '@langchain/openai';
-import { WeeklyContributor, ChallengeData } from './types/culture-builder.types';
+import { WeeklyContributor, ChallengeData, QuizQuestion } from './types/culture-builder.types';
 
 @Injectable()
 export class CultureAiService {
@@ -125,6 +125,85 @@ Thank you for making Compass a vibrant place to share knowledge and connect!
 Let's keep the momentum going next week! 🚀
 
 _This is an AI-generated appreciation thread based on community activity._`;
+    }
+
+    async generateQuiz(challengeType: string): Promise<{ title: string; description: string; questions: QuizQuestion[] }> {
+        try {
+            const prompt = `Generate a 5-question quiz for a company culture challenge about: ${challengeType}
+
+Requirements:
+1. Create exactly 5 questions related to ${challengeType}
+2. Each question should have exactly 4 alternatives
+3. Mark the correct answer with its index (0-3)
+4. Questions should be engaging and educational
+5. Mix difficulty levels
+6. Make it relevant to workplace culture and team building
+
+Return ONLY a valid JSON object in this exact format (no markdown, no code blocks):
+{
+  "title": "Quiz title here",
+  "description": "Brief description of the quiz",
+  "questions": [
+    {
+      "question": "Question text?",
+      "alternatives": ["Option 1", "Option 2", "Option 3", "Option 4"],
+      "correctAnswer": 0
+    }
+  ]
+}`;
+
+            const response = await this.llm.invoke(prompt);
+            const content = response.content.toString().trim();
+
+            // Remove markdown code blocks if present
+            const jsonContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+            const quizData = JSON.parse(jsonContent);
+
+            // Validate the structure
+            if (!quizData.questions || quizData.questions.length !== 5) {
+                throw new Error('Invalid quiz structure');
+            }
+
+            return quizData;
+        } catch (error) {
+            this.logger.error('Failed to generate quiz', error);
+            return this.getFallbackQuiz(challengeType);
+        }
+    }
+
+    private getFallbackQuiz(challengeType: string): { title: string; description: string; questions: QuizQuestion[] } {
+        return {
+            title: `${challengeType} Challenge Quiz`,
+            description: 'Test your knowledge and win!',
+            questions: [
+                {
+                    question: 'What is the most important aspect of team collaboration?',
+                    alternatives: ['Communication', 'Competition', 'Individual work', 'Hierarchy'],
+                    correctAnswer: 0,
+                },
+                {
+                    question: 'How often should teams share knowledge?',
+                    alternatives: ['Never', 'Once a year', 'Regularly', 'Only when asked'],
+                    correctAnswer: 2,
+                },
+                {
+                    question: 'What makes a good team player?',
+                    alternatives: ['Working alone', 'Helping others', 'Keeping information secret', 'Avoiding meetings'],
+                    correctAnswer: 1,
+                },
+                {
+                    question: 'Why is feedback important?',
+                    alternatives: ['It is not important', 'To criticize others', 'To improve and grow', 'To show authority'],
+                    correctAnswer: 2,
+                },
+                {
+                    question: 'What builds trust in a team?',
+                    alternatives: ['Secrets', 'Transparency', 'Competition', 'Isolation'],
+                    correctAnswer: 1,
+                },
+            ],
+        };
     }
 
     private getFallbackChallengeContent(challengeData: ChallengeData): string {

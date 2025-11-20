@@ -1,0 +1,305 @@
+{
+  "info": {
+    "_postman_id": "quiz-culture-builder-001",
+    "name": "Culture Quiz API",
+    "description": "API endpoints for the Culture Builder Quiz Challenge system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Admin - Generate Quiz",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}",
+            "description": "Admin JWT token required"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"challengeType\": \"knowledge-sharing\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/culture-builder/quiz/generate",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "quiz", "generate"]
+        },
+        "description": "Admin endpoint to generate a new AI-powered quiz. Challenge types: engagement, cross-bu, mentorship, knowledge-share"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Active Quiz",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}",
+            "description": "User JWT token required"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/culture-builder/quiz/active",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "quiz", "active"]
+        },
+        "description": "Get the currently active quiz (without correct answers)"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/quiz/active",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "quiz", "active"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"id\": 1,\n  \"title\": \"Knowledge Sharing Challenge Quiz\",\n  \"description\": \"Test your knowledge about team collaboration\",\n  \"questions\": [\n    {\n      \"question\": \"What is the most important aspect of knowledge sharing?\",\n      \"alternatives\": [\n        \"Documentation\",\n        \"Communication\",\n        \"Tools\",\n        \"Management\"\n      ]\n    },\n    {\n      \"question\": \"How often should teams share updates?\",\n      \"alternatives\": [\n        \"Daily\",\n        \"Weekly\",\n        \"Monthly\",\n        \"Quarterly\"\n      ]\n    }\n  ],\n  \"createdAt\": \"2025-11-20T00:00:00.000Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Submit Quiz Answers",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}",
+            "description": "User JWT token required"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quizId\": 1,\n  \"answers\": [0, 1, 2, 0, 1]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/culture-builder/quiz/submit",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "quiz", "submit"]
+        },
+        "description": "Submit quiz answers (array of 5 answer indices 0-3). Returns score and correct answers."
+      },
+      "response": [
+        {
+          "name": "Success - Passed",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 1,\n  \"answers\": [0, 1, 2, 0, 1]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/culture-builder/quiz/submit",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "quiz", "submit"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"quizId\": 1,\n  \"score\": 4,\n  \"totalQuestions\": 5,\n  \"passed\": true,\n  \"correctAnswers\": [0, 1, 2, 0, 1]\n}"
+        },
+        {
+          "name": "Error - Already Submitted",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 1,\n  \"answers\": [0, 1, 2, 0, 1]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/culture-builder/quiz/submit",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "quiz", "submit"]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "{\n  \"statusCode\": 400,\n  \"message\": \"You have already submitted this quiz\",\n  \"error\": \"Bad Request\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get My Submissions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}",
+            "description": "User JWT token required"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/culture-builder/quiz/my-submissions",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "quiz", "my-submissions"]
+        },
+        "description": "Get current user's quiz submission history"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/quiz/my-submissions",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "quiz", "my-submissions"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": 1,\n    \"quiz_id\": 1,\n    \"user_id\": 5,\n    \"answers\": [0, 1, 2, 0, 1],\n    \"score\": 4,\n    \"passed\": true,\n    \"created_at\": \"2025-11-20T10:30:00.000Z\",\n    \"quiz\": {\n      \"id\": 1,\n      \"title\": \"Knowledge Sharing Challenge Quiz\",\n      \"description\": \"Test your knowledge\"\n    }\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Get Quiz Leaderboard",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}",
+            "description": "User JWT token required"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/culture-builder/quiz/:quizId/leaderboard",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "quiz", ":quizId", "leaderboard"],
+          "variable": [
+            {
+              "key": "quizId",
+              "value": "1",
+              "description": "Quiz ID"
+            }
+          ]
+        },
+        "description": "Get top 10 scorers for a specific quiz (ordered by score DESC, then submission time ASC)"
+      },
+      "response": [
+        {
+          "name": "Success Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/culture-builder/quiz/1/leaderboard",
+              "host": ["{{base_url}}"],
+              "path": ["culture-builder", "quiz", "1", "leaderboard"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": 3,\n    \"quiz_id\": 1,\n    \"user_id\": 8,\n    \"score\": 5,\n    \"passed\": true,\n    \"created_at\": \"2025-11-20T09:15:00.000Z\",\n    \"user\": {\n      \"id\": 8,\n      \"firstname\": \"Alice\",\n      \"lastname\": \"Johnson\",\n      \"email\": \"alice@example.com\"\n    }\n  },\n  {\n    \"id\": 1,\n    \"quiz_id\": 1,\n    \"user_id\": 5,\n    \"score\": 4,\n    \"passed\": true,\n    \"created_at\": \"2025-11-20T10:30:00.000Z\",\n    \"user\": {\n      \"id\": 5,\n      \"firstname\": \"Bob\",\n      \"lastname\": \"Smith\",\n      \"email\": \"bob@example.com\"\n    }\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "Get Top Contributors",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/culture-builder/contributors",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "contributors"]
+        },
+        "description": "Get top 3 contributors from the last 7 days"
+      },
+      "response": []
+    },
+    {
+      "name": "Get Analytics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{user_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/culture-builder/analytics",
+          "host": ["{{base_url}}"],
+          "path": ["culture-builder", "analytics"]
+        },
+        "description": "Get weekly analytics with top 3 posts and total upvotes"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "your_admin_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "your_user_jwt_token_here",
+      "type": "string"
+    }
+  ]
+}
