@@ -588,7 +588,7 @@ Type: Post
 Title: ${doc.title}
 Content: ${doc.content}
 Author: ${doc.author}
-Thread: ${doc.threadName || 'N/A'}
+Hive: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
@@ -598,14 +598,16 @@ Type: Reply
 Post Title: ${doc.postTitle || 'N/A'}
 Content: ${doc.content}
 Author: ${doc.author}
-Thread: ${doc.threadName || 'N/A'}
+Hive: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
             }
         }).join('\n\n---\n\n');
 
-        return `You are a helpful search assistant for Compass, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
+        return `You are a helpful search assistant for HoneyComb, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
+
+TERMINOLOGY NOTE: In HoneyComb, discussion groups are called "Hives" (not threads). Always refer to them as "Hives" in your responses.
 
 AVAILABLE DOCUMENTS:
 ${docsContext}
