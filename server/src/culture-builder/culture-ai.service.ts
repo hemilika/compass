@@ -79,21 +79,14 @@ Generate the challenge post content:`;
         }
 
         const contributorsList = contributors.map((c, idx) => {
-            const name = `${c.firstname} ${c.lastname}`.trim() || c.email;
-            const bu = c.buName ? ` (${c.buName})` : '';
-            return `${idx + 1}. **${name}**${bu} - ${c.postCount} posts, ${c.replyCount} replies, ${c.totalUpvotes} upvotes`;
+            const name = `${c.firstname} ${c.lastname}`.trim() || 'Unknown';
+            return `${idx + 1}. **${name}** - ${c.postCount} posts, ${c.replyCount} replies, ${c.totalUpvotes} upvotes`;
         }).join('\n');
-
-        const topPost = contributors[0]?.topPost;
-        const topPostHighlight = topPost
-            ? `\n\n🏆 **Spotlight:** <a href="/posts/${topPost.id}" class="post-link" data-post-id="${topPost.id}">${topPost.title}</a> by ${contributors[0].firstname} received ${topPost.upvotes} upvotes!`
-            : '';
 
         const prompt = `Create a warm, appreciative weekly recognition post for our internal community platform.
 
 Top Contributors This Week:
 ${contributorsList}
-${topPostHighlight}
 
 Requirements:
 1. Start with an engaging opening that celebrates the community

@@ -56,26 +56,17 @@ export class CultureBuilderController {
     }
 
     // Analytics endpoints
-    @Get('analytics/weekly')
+    @Get('top/posts')
     async getWeeklyAnalytics() {
         return await this.analytics.getWeeklyAnalytics();
     }
 
-    @Get('analytics/top-contributors')
+    @Get('top/contributors')
     async getTopContributors() {
         return await this.analytics.getTopContributors(7);
     }
 
-    @Get('health')
-    health() {
-        return {
-            status: 'ok',
-            service: 'culture-builder',
-            timestamp: new Date().toISOString(),
-        };
-    }
 
-    // Public endpoints for users
     @Get('challenges/active')
     async getActiveChallenges() {
         return await this.cultureBuilder.getActiveChallenges();

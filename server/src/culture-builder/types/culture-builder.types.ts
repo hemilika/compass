@@ -2,21 +2,16 @@ export interface WeeklyContributor {
     userId: number;
     firstname: string;
     lastname: string;
-    email: string;
-    buName?: string;
     postCount: number;
     replyCount: number;
     totalUpvotes: number;
-    topPost?: {
-        id: number;
-        title: string;
-        upvotes: number;
-    };
-    topReply?: {
-        id: number;
-        content: string;
-        upvotes: number;
-    };
+}
+
+export interface TopPost {
+    id: number;
+    title: string;
+    upvotes: number;
+    replies: number;
 }
 
 export interface ChallengeData {
@@ -29,13 +24,6 @@ export interface ChallengeData {
 }
 
 export interface WeeklyAnalytics {
-    weekStart: Date;
-    weekEnd: Date;
-    topContributors: WeeklyContributor[];
-    totalPosts: number;
-    totalReplies: number;
+    topPosts: TopPost[];
     totalUpvotes: number;
-    activeUsers: number;
-    activeBUs: string[];
-    trendingTopics: string[];
 }
