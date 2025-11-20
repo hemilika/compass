@@ -389,7 +389,7 @@ export class SearchService implements OnModuleInit {
                 ],
                 metadata: {
                     totalSources: 0,
-                    modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-4o'),
+                    modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
                     queryProcessedAt: new Date(),
                 },
             };
@@ -559,7 +559,7 @@ export class SearchService implements OnModuleInit {
             suggestedFollowups: result.suggestedFollowups || [],
             metadata: {
                 totalSources: sources.length,
-                modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-4o'),
+                modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
                 queryProcessedAt: new Date(),
             },
         };

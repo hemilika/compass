@@ -79,7 +79,7 @@ Performs an AI-powered conversational search.
   suggestedFollowups: string[];     // 2-3 suggested follow-up questions
   metadata: {
     totalSources: number;
-    modelUsed: string;              // e.g., "gpt-4o"
+    modelUsed: string;              // e.g., "gpt-5-nano"
     queryProcessedAt: Date;
   };
 }
@@ -162,7 +162,7 @@ curl -X POST http://localhost:3000/search/ai \
   ],
   "metadata": {
     "totalSources": 1,
-    "modelUsed": "gpt-4o",
+    "modelUsed": "gpt-5-nano",
     "queryProcessedAt": "2025-11-19T14:25:30Z"
   }
 }
