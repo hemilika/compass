@@ -198,7 +198,7 @@ export const Chat = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <Card className="fixed bottom-24 right-6 w-[28rem] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] shadow-2xl z-50 flex flex-col">
+        <Card className="fixed bottom-24 right-6 w-md max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] shadow-2xl z-50 flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b shrink-0 min-w-0">
             <CardTitle className="text-lg font-semibold truncate min-w-0">
               AI Assistant

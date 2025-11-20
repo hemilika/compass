@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSearch, useThreads } from "@/hooks/api";
+import { useSearch, useThreads, useBusinessUnits } from "@/hooks/api";
 import type { SearchQueryParams } from "@/types/api";
 import { formatTimeAgo } from "@/lib/date-utils";
 
@@ -23,34 +23,60 @@ interface SearchProps {
 const SearchComponent = memo(({ onClose }: SearchProps) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [selectedThreadId, setSelectedThreadId] = useState<number | undefined>(
+  const [selectedThreadId, setSelectedThreadId] = useState<string | undefined>(
+    undefined
+  );
+  const [selectedBuId, setSelectedBuId] = useState<string | undefined>(
     undefined
   );
   const [searchParams, setSearchParams] = useState<SearchQueryParams | null>(
     null
   );
   const { data: threads } = useThreads();
+  const { data: businessUnits } = useBusinessUnits();
 
   const { data: searchResults, isLoading } = useSearch(
     searchParams || { query: "", sort: "relevance", page: 1, limit: 10 },
     !!searchParams && searchParams.query.trim().length > 0
   );
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleSearch = useCallback(() => {
     if (!query.trim()) {
       setSearchParams(null);
       return;
     }
+
+    // Idempotent conversion: string to number, ensuring valid integer
+    const threadIdNumber = selectedThreadId
+      ? (() => {
+          const num = Number(selectedThreadId);
+          return Number.isInteger(num) && !isNaN(num) && num > 0
+            ? num
+            : undefined;
+        })()
+      : undefined;
+
+    // Idempotent conversion: string to number for business unit, ensuring valid integer
+    const buIdNumber = selectedBuId
+      ? (() => {
+          const num = Number(selectedBuId);
+          return Number.isInteger(num) && !isNaN(num) && num > 0
+            ? num
+            : undefined;
+        })()
+      : undefined;
+
     setSearchParams({
       query: query.trim(),
       sort: "relevance",
       page: 1,
       limit: 10,
-      threadId: selectedThreadId,
+      threadId: threadIdNumber,
+      buId: buIdNumber,
     });
-  }, [query, selectedThreadId]);
+  }, [query, selectedThreadId, selectedBuId]);
 
   // Debounced search - triggers after 1.5 seconds of no typing
   useEffect(() => {
@@ -76,7 +102,7 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, selectedThreadId, handleSearch]);
+  }, [query, selectedThreadId, selectedBuId, handleSearch]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -130,33 +156,60 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
               onClick={() => {
                 setQuery("");
                 setSearchParams(null);
+                setSelectedThreadId(undefined);
+                setSelectedBuId(undefined);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               type="button"
             >
               <X className="h-4 w-4" />
             </button>
           )}
         </div>
-        <Button onClick={handleSearch} disabled={!query.trim() || isLoading}>
+        <Button
+          onClick={handleSearch}
+          disabled={!query.trim() || isLoading}
+          className="shrink-0"
+        >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </div>
-      <div className="mt-2">
+
+      {/* Filters */}
+      <div className="mt-2 grid grid-cols-2 gap-2">
         <Select
-          value={selectedThreadId?.toString() || "all"}
+          value={selectedThreadId || "all"}
           onValueChange={(value) => {
-            setSelectedThreadId(value === "all" ? undefined : Number(value));
+            setSelectedThreadId(value === "all" ? undefined : value);
           }}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Filter by hive (optional)" />
+            <SelectValue placeholder="Filter by hive" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Hives</SelectItem>
             {threads?.map((thread) => (
               <SelectItem key={thread.id} value={thread.id.toString()}>
                 {thread.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={selectedBuId || "all"}
+          onValueChange={(value) => {
+            setSelectedBuId(value === "all" ? undefined : value);
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by business unit" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Business Units</SelectItem>
+            {businessUnits?.map((bu) => (
+              <SelectItem key={bu.id} value={bu.id.toString()}>
+                {bu.name}
               </SelectItem>
             ))}
           </SelectContent>

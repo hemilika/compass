@@ -90,11 +90,11 @@ const Navbar = () => {
       </nav>
 
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="max-w-3xl p-0">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="max-w-2xl p-0 left-[50%] top-12 -translate-x-1/2 translate-y-0">
+          <DialogHeader className="p-6 pb-4">
             <DialogTitle>Search</DialogTitle>
           </DialogHeader>
-          <div className="p-6">
+          <div className="px-6 pb-6">
             <Search onClose={() => setSearchOpen(false)} />
           </div>
         </DialogContent>

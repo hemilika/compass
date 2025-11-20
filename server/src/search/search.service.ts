@@ -11,579 +11,617 @@ import { Reply } from '../replies/reply.entity';
 import { User } from '../users/user.entity';
 import { ThreadUser } from '../threads/thread-user.entity';
 
-import { SearchDocument, tokenize, AiSearchResponse, AiSearchSource } from './search.types';
+import {
+  SearchDocument,
+  tokenize,
+  AiSearchResponse,
+  AiSearchSource,
+} from './search.types';
 import { SEARCH_CONFIG } from './search.config';
 import { AiSearchDto } from './dto/ai-search.dto';
 
 type DocIndex = number;
 
 interface SearchParams {
-    query: string;
-    type?: 'post' | 'reply';
-    match?: 'or' | 'and' | 'exact';
-    buId?: number;
-    threadId?: number;
-    sort?: 'relevance' | 'new' | 'top';
-    page?: number;
-    limit?: number;
+  query: string;
+  type?: 'post' | 'reply';
+  match?: 'or' | 'and' | 'exact';
+  buId?: number;
+  threadId?: number;
+  sort?: 'relevance' | 'new' | 'top';
+  page?: number;
+  limit?: number;
 }
 
 @Injectable()
 export class SearchService implements OnModuleInit {
-    private documents: SearchDocument[] = [];
-    private index = new Map<string, Set<DocIndex>>();
-    private now = new Date();
-    private openai: OpenAI;
+  private documents: SearchDocument[] = [];
+  private index = new Map<string, Set<DocIndex>>();
+  private now = new Date();
+  private openai: OpenAI;
 
-    // fast lookup maps
-    private buMap = new Map<number, Bu>();
-    private threadMap = new Map<number, Thread>();
+  // fast lookup maps
+  private buMap = new Map<number, Bu>();
+  private threadMap = new Map<number, Thread>();
 
-    constructor(
-        @InjectRepository(Post)
-        private readonly postsRepo: Repository<Post>,
+  constructor(
+    @InjectRepository(Post)
+    private readonly postsRepo: Repository<Post>,
 
-        @InjectRepository(Reply)
-        private readonly repliesRepo: Repository<Reply>,
+    @InjectRepository(Reply)
+    private readonly repliesRepo: Repository<Reply>,
 
-        @InjectRepository(Thread)
-        private readonly threadsRepo: Repository<Thread>,
+    @InjectRepository(Thread)
+    private readonly threadsRepo: Repository<Thread>,
 
-        @InjectRepository(Bu)
-        private readonly buRepo: Repository<Bu>,
+    @InjectRepository(Bu)
+    private readonly buRepo: Repository<Bu>,
 
-        @InjectRepository(User)
-        private readonly usersRepo: Repository<User>,
+    @InjectRepository(User)
+    private readonly usersRepo: Repository<User>,
 
-        @InjectRepository(ThreadUser)
-        private readonly threadUsersRepo: Repository<ThreadUser>,
+    @InjectRepository(ThreadUser)
+    private readonly threadUsersRepo: Repository<ThreadUser>,
 
-        private readonly configService: ConfigService,
-    ) {
-        const apiKey = this.configService.get<string>('OPENAI_API_KEY');
-        if (apiKey) {
-            this.openai = new OpenAI({ apiKey });
-        }
+    private readonly configService: ConfigService,
+  ) {
+    const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+    if (apiKey) {
+      this.openai = new OpenAI({ apiKey });
+    }
+  }
+
+  async onModuleInit() {
+    await this.buildDocumentsFromDB();
+    this.buildIndex();
+  }
+
+  // ---------------------------
+  // LOAD REAL DATA FROM DATABASE
+  // ---------------------------
+  private async buildDocumentsFromDB() {
+    const posts = await this.postsRepo.find();
+    const replies = await this.repliesRepo.find();
+    const threads = await this.threadsRepo.find();
+    const bus = await this.buRepo.find();
+
+    // Store fast lookup maps
+    threads.forEach((t) => this.threadMap.set(Number(t.id), t));
+    bus.forEach((b) => this.buMap.set(Number(b.id), b));
+
+    const docs: SearchDocument[] = [];
+
+    // POSTS
+    for (const post of posts) {
+      docs.push({
+        id: `post_${post.id}`,
+        type: 'post',
+        buId: post.bu_id != null ? Number(post.bu_id) : null,
+        threadId: post.thread_id != null ? Number(post.thread_id) : null,
+        postId: Number(post.id),
+        title: post.title,
+        text: `${post.title} ${post.content}`,
+        score: post.upvote_count ?? 0,
+        createdAt: post.created_at,
+      });
     }
 
-    async onModuleInit() {
-        await this.buildDocumentsFromDB();
-        this.buildIndex();
+    // REPLIES
+    for (const reply of replies) {
+      const parentPost = posts.find(
+        (p) => Number(p.id) === Number(reply.post_id),
+      );
+      docs.push({
+        id: `reply_${reply.id}`,
+        type: 'reply',
+        buId: parentPost?.bu_id != null ? Number(parentPost.bu_id) : null,
+        threadId:
+          parentPost?.thread_id != null ? Number(parentPost.thread_id) : null,
+        postId: Number(reply.post_id),
+        title: undefined,
+        text: reply.content,
+        score: reply.upvote_count ?? 0,
+        createdAt: reply.created_at,
+      });
     }
 
-    // ---------------------------
-    // LOAD REAL DATA FROM DATABASE
-    // ---------------------------
-    private async buildDocumentsFromDB() {
-        const posts = await this.postsRepo.find();
-        const replies = await this.repliesRepo.find();
-        const threads = await this.threadsRepo.find();
-        const bus = await this.buRepo.find();
+    this.documents = docs;
+  }
 
-        // Store fast lookup maps
-        threads.forEach(t => this.threadMap.set(t.id, t));
-        bus.forEach(b => this.buMap.set(b.id, b));
+  // ---------------------------
+  // BUILD INVERTED INDEX
+  // ---------------------------
+  private buildIndex() {
+    this.index.clear();
 
-        const docs: SearchDocument[] = [];
+    this.documents.forEach((doc, idx) => {
+      const tokens = tokenize(doc.text);
+      for (const token of new Set(tokens)) {
+        if (!this.index.has(token)) this.index.set(token, new Set());
+        this.index.get(token)!.add(idx);
+      }
+    });
+  }
 
-        // POSTS
-        for (const post of posts) {
-            docs.push({
-                id: `post_${post.id}`,
-                type: 'post',
-                buId: post.bu_id ?? null,
-                threadId: post.thread_id,
-                postId: post.id,
-                title: post.title,
-                text: `${post.title} ${post.content}`,
-                score: post.upvote_count ?? 0,
-                createdAt: post.created_at,
-            });
+  // ---------------------------
+  // SUPPORTING UTILITIES
+  // ---------------------------
+  private phraseMatch(text: string, query: string): boolean {
+    return text.toLowerCase().includes(query.toLowerCase());
+  }
+
+  private proximityScore(text: string, terms: string[]): number {
+    const words = text.toLowerCase().split(/\s+/);
+    let bestDistance = Infinity;
+
+    for (let i = 0; i < words.length; i++) {
+      for (let j = i + 1; j < words.length; j++) {
+        if (terms.includes(words[i]) && terms.includes(words[j])) {
+          bestDistance = Math.min(bestDistance, Math.abs(j - i));
         }
-
-        // REPLIES
-        for (const reply of replies) {
-            const parentPost = posts.find(p => p.id === reply.post_id);
-
-            docs.push({
-                id: `reply_${reply.id}`,
-                type: 'reply',
-                buId: parentPost?.bu_id ?? null,
-                threadId: parentPost?.thread_id ?? null,
-                postId: reply.post_id,
-                title: undefined,
-                text: reply.content,
-                score: reply.upvote_count ?? 0,
-                createdAt: reply.created_at,
-            });
-        }
-
-        this.documents = docs;
+      }
     }
 
-    // ---------------------------
-    // BUILD INVERTED INDEX
-    // ---------------------------
-    private buildIndex() {
-        this.index.clear();
+    return bestDistance < Infinity ? 1 / bestDistance : 0;
+  }
 
-        this.documents.forEach((doc, idx) => {
-            const tokens = tokenize(doc.text);
-            for (const token of new Set(tokens)) {
-                if (!this.index.has(token)) this.index.set(token, new Set());
-                this.index.get(token)!.add(idx);
-            }
-        });
+  private generateSnippet(text: string, terms: string[]) {
+    const lower = text.toLowerCase();
+    let idx = 0;
+
+    for (const t of terms) {
+      const found = lower.indexOf(t);
+      if (found !== -1) {
+        idx = found;
+        break;
+      }
     }
 
-    // ---------------------------
-    // SUPPORTING UTILITIES
-    // ---------------------------
-    private phraseMatch(text: string, query: string): boolean {
-        return text.toLowerCase().includes(query.toLowerCase());
+    const start = Math.max(0, idx - SEARCH_CONFIG.snippetLength / 2);
+    const snippet = text.slice(start, start + SEARCH_CONFIG.snippetLength);
+
+    let highlighted = snippet;
+    for (const t of terms) {
+      const reg = new RegExp(t, 'gi');
+      highlighted = highlighted.replace(reg, (m) => `<b>${m}</b>`);
     }
 
-    private proximityScore(text: string, terms: string[]): number {
-        const words = text.toLowerCase().split(/\s+/);
-        let bestDistance = Infinity;
+    return highlighted;
+  }
 
-        for (let i = 0; i < words.length; i++) {
-            for (let j = i + 1; j < words.length; j++) {
-                if (terms.includes(words[i]) && terms.includes(words[j])) {
-                    bestDistance = Math.min(bestDistance, Math.abs(j - i));
-                }
-            }
-        }
+  // ---------------------------
+  // MAIN SEARCH LOGIC
+  // ---------------------------
+  search(params: SearchParams) {
+    const {
+      query,
+      type,
+      match = 'or',
+      buId,
+      threadId,
+      sort = 'relevance',
+      page = 1,
+      limit = 20,
+    } = params;
 
-        return bestDistance < Infinity ? 1 / bestDistance : 0;
+    if (!query.trim()) {
+      return { total: 0, page, limit, results: [] };
     }
 
-    private generateSnippet(text: string, terms: string[]) {
-        const lower = text.toLowerCase();
-        let idx = 0;
-
-        for (const t of terms) {
-            const found = lower.indexOf(t);
-            if (found !== -1) {
-                idx = found;
-                break;
-            }
-        }
-
-        const start = Math.max(0, idx - SEARCH_CONFIG.snippetLength / 2);
-        const snippet = text.slice(start, start + SEARCH_CONFIG.snippetLength);
-
-        let highlighted = snippet;
-        for (const t of terms) {
-            const reg = new RegExp(t, 'gi');
-            highlighted = highlighted.replace(reg, (m) => `<b>${m}</b>`);
-        }
-
-        return highlighted;
+    if (match === 'exact') {
+      return this.searchExact(query, params);
     }
 
-    // ---------------------------
-    // MAIN SEARCH LOGIC
-    // ---------------------------
-    search(params: SearchParams) {
-        const {
-            query,
-            type,
-            match = 'or',
-            buId,
-            threadId,
-            sort = 'relevance',
-            page = 1,
-            limit = 20,
-        } = params;
-
-        if (!query.trim()) {
-            return { total: 0, page, limit, results: [] };
-        }
-
-        if (match === 'exact') {
-            return this.searchExact(query, params);
-        }
-
-        const terms = tokenize(query);
-        if (terms.length === 0) {
-            return { total: 0, page, limit, results: [] };
-        }
-
-        const candidateIndexes = new Set<DocIndex>();
-        for (const term of terms) {
-            const docs = this.index.get(term);
-            if (docs) docs.forEach((idx) => candidateIndexes.add(idx));
-        }
-
-        const scored: { doc: SearchDocument; score: number }[] = [];
-
-        for (const idx of candidateIndexes) {
-            const doc = this.documents[idx];
-
-            // Filters
-            if (type && doc.type !== type) continue;
-            if (buId && doc.buId !== buId) continue;
-            if (threadId && doc.threadId !== threadId) continue;
-
-            const textTokens = tokenize(doc.text);
-            if (match === 'and') {
-                const missing = terms.some((t) => !textTokens.includes(t));
-                if (missing) continue;
-            }
-
-            let score = 0;
-
-            // Frequency ranking
-            for (const t of terms) {
-                const titleFreq =
-                    (doc.title?.toLowerCase().match(new RegExp(t, 'g')) || []).length;
-                const bodyFreq =
-                    (doc.text.toLowerCase().match(new RegExp(t, 'g')) || []).length -
-                    titleFreq;
-
-                score += titleFreq * SEARCH_CONFIG.titleWeight;
-                score += bodyFreq * SEARCH_CONFIG.contentWeight;
-            }
-
-            if (this.phraseMatch(doc.text, query)) {
-                score += SEARCH_CONFIG.phraseBoost;
-            }
-
-            score +=
-                this.proximityScore(doc.text, terms) *
-                SEARCH_CONFIG.proximityBoost;
-
-            score += doc.score * SEARCH_CONFIG.upvoteBoost;
-
-            const ageDays =
-                (this.now.getTime() - doc.createdAt.getTime()) /
-                (1000 * 60 * 60 * 24);
-            score += Math.max(0, 5 - ageDays * SEARCH_CONFIG.recencyDecay);
-
-            scored.push({ doc, score });
-        }
-
-        // Sorting
-        scored.sort((a, b) => {
-            if (sort === 'new')
-                return b.doc.createdAt.getTime() - a.doc.createdAt.getTime();
-            if (sort === 'top')
-                return b.doc.score - a.doc.score;
-            return b.score - a.score;
-        });
-
-        // Pagination
-        const start = (page - 1) * limit;
-        const list = scored.slice(start, start + limit);
-
-        // Enrichment
-        const results = list.map(({ doc, score }) => {
-            const thread = doc.threadId ? this.threadMap.get(doc.threadId) : null;
-            const bu = doc.buId ? this.buMap.get(doc.buId) : null;
-
-            return {
-                id: doc.id,
-                type: doc.type,
-                buId: doc.buId,
-                threadId: doc.threadId,
-                threadName: thread?.name || null,
-                buName: bu?.name || null,
-                postId: doc.postId,
-                title: doc.title,
-                createdAt: doc.createdAt,
-                score: doc.score,
-                relevance: score,
-                snippet: this.generateSnippet(doc.text, terms),
-            };
-        });
-
-        return {
-            total: scored.length,
-            page,
-            limit,
-            results,
-        };
+    const terms = tokenize(query);
+    if (terms.length === 0) {
+      return { total: 0, page, limit, results: [] };
     }
 
-    // ---------------------------
-    // EXACT PHRASE SEARCH
-    // ---------------------------
-    private searchExact(query: string, params: SearchParams) {
-        const { type, buId, threadId, page = 1, limit = 20 } = params;
-
-        const results = this.documents
-            .filter((doc) => {
-                if (type && doc.type !== type) return false;
-                if (buId && doc.buId !== buId) return false;
-                if (threadId && doc.threadId !== threadId) return false;
-                return doc.text.toLowerCase().includes(query.toLowerCase());
-            })
-            .map((doc) => ({
-                ...doc,
-                snippet: this.generateSnippet(doc.text, [query]),
-            }));
-
-        const total = results.length;
-        const start = (page - 1) * limit;
-
-        return {
-            total,
-            page,
-            limit,
-            results: results.slice(start, start + limit),
-        };
+    const candidateIndexes = new Set<DocIndex>();
+    for (const term of terms) {
+      const docs = this.index.get(term);
+      if (docs) docs.forEach((idx) => candidateIndexes.add(idx));
     }
 
-    // ---------------------------
-    // INDEX STATS
-    // ---------------------------
-    stats() {
-        return {
-            documentsIndexed: this.documents.length,
-            termsIndexed: this.index.size,
-            bus: this.buMap.size,
-            threads: this.threadMap.size,
-            posts: this.documents.filter(d => d.type === 'post').length,
-            replies: this.documents.filter(d => d.type === 'reply').length,
-        };
+    const scored: { doc: SearchDocument; score: number }[] = [];
+
+    for (const idx of candidateIndexes) {
+      const doc = this.documents[idx];
+
+      // Filters
+      if (type && doc.type !== type) continue;
+      if (buId && doc.buId !== buId) continue;
+      if (threadId && doc.threadId !== threadId) continue;
+
+      const textTokens = tokenize(doc.text);
+      if (match === 'and') {
+        const missing = terms.some((t) => !textTokens.includes(t));
+        if (missing) continue;
+      }
+
+      let score = 0;
+
+      // Frequency ranking
+      for (const t of terms) {
+        const titleFreq = (
+          doc.title?.toLowerCase().match(new RegExp(t, 'g')) || []
+        ).length;
+        const bodyFreq =
+          (doc.text.toLowerCase().match(new RegExp(t, 'g')) || []).length -
+          titleFreq;
+
+        score += titleFreq * SEARCH_CONFIG.titleWeight;
+        score += bodyFreq * SEARCH_CONFIG.contentWeight;
+      }
+
+      if (this.phraseMatch(doc.text, query)) {
+        score += SEARCH_CONFIG.phraseBoost;
+      }
+
+      score +=
+        this.proximityScore(doc.text, terms) * SEARCH_CONFIG.proximityBoost;
+
+      score += doc.score * SEARCH_CONFIG.upvoteBoost;
+
+      const ageDays =
+        (this.now.getTime() - doc.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      score += Math.max(0, 5 - ageDays * SEARCH_CONFIG.recencyDecay);
+
+      scored.push({ doc, score });
     }
 
-    // ---------------------------
-    // AI-POWERED SEARCH
-    // ---------------------------
-    async aiSearch(dto: AiSearchDto, userId: number): Promise<AiSearchResponse> {
-        if (!this.openai) {
-            throw new Error('OpenAI API key not configured');
-        }
+    // Sorting
+    scored.sort((a, b) => {
+      if (sort === 'new')
+        return b.doc.createdAt.getTime() - a.doc.createdAt.getTime();
+      if (sort === 'top') return b.doc.score - a.doc.score;
+      return b.score - a.score;
+    });
 
-        // Query database directly for posts and replies (no thread restriction)
-        const terms = tokenize(dto.query);
-        const searchPattern = `%${dto.query}%`;
+    // Pagination
+    const start = (page - 1) * limit;
+    const list = scored.slice(start, start + limit);
 
-        // Build post query - search all posts
-        const postQuery = this.postsRepo.createQueryBuilder('post')
-            .leftJoinAndSelect('post.author', 'author')
-            .leftJoinAndSelect('post.thread', 'thread')
-            .leftJoinAndSelect('post.bu', 'bu')
-            .where('(LOWER(post.title) LIKE LOWER(:pattern) OR LOWER(post.content) LIKE LOWER(:pattern))',
-                { pattern: searchPattern });
+    // Enrichment
+    const results = list.map(({ doc, score }) => {
+      const thread = doc.threadId ? this.threadMap.get(doc.threadId) : null;
+      const bu = doc.buId ? this.buMap.get(doc.buId) : null;
 
-        if (dto.buId) {
-            postQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
-        }
-        if (dto.threadId) {
-            postQuery.andWhere('post.thread_id = :threadId', { threadId: dto.threadId });
-        }
+      return {
+        id: doc.id,
+        type: doc.type,
+        buId: doc.buId,
+        threadId: doc.threadId,
+        threadName: thread?.name || null,
+        buName: bu?.name || null,
+        postId: doc.postId,
+        title: doc.title,
+        createdAt: doc.createdAt,
+        score: doc.score,
+        relevance: score,
+        snippet: this.generateSnippet(doc.text, terms),
+      };
+    });
 
-        postQuery.orderBy('post.upvote_count', 'DESC')
-            .addOrderBy('post.created_at', 'DESC')
-            .limit(SEARCH_CONFIG.ai.maxContextDocuments);
+    return {
+      total: scored.length,
+      page,
+      limit,
+      results,
+    };
+  }
 
-        // Build reply query - search all replies
-        const replyQuery = this.repliesRepo.createQueryBuilder('reply')
-            .leftJoinAndSelect('reply.author', 'author')
-            .leftJoinAndSelect('reply.post', 'post')
-            .leftJoinAndSelect('post.thread', 'thread')
-            .leftJoinAndSelect('post.bu', 'bu')
-            .where('LOWER(reply.content) LIKE LOWER(:pattern)', { pattern: searchPattern });
+  // ---------------------------
+  // EXACT PHRASE SEARCH
+  // ---------------------------
+  private searchExact(query: string, params: SearchParams) {
+    const { type, buId, threadId, page = 1, limit = 20 } = params;
 
-        if (dto.buId) {
-            replyQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
-        }
-        if (dto.threadId) {
-            replyQuery.andWhere('post.thread_id = :threadId', { threadId: dto.threadId });
-        }
+    const results = this.documents
+      .filter((doc) => {
+        if (type && doc.type !== type) return false;
+        if (buId && doc.buId !== buId) return false;
+        if (threadId && doc.threadId !== threadId) return false;
+        return doc.text.toLowerCase().includes(query.toLowerCase());
+      })
+      .map((doc) => ({
+        ...doc,
+        snippet: this.generateSnippet(doc.text, [query]),
+      }));
 
-        replyQuery.orderBy('reply.upvote_count', 'DESC')
-            .addOrderBy('reply.created_at', 'DESC')
-            .limit(SEARCH_CONFIG.ai.maxContextDocuments);
+    const total = results.length;
+    const start = (page - 1) * limit;
 
-        // Execute queries in parallel
-        const [posts, replies] = await Promise.all([
-            postQuery.getMany(),
-            replyQuery.getMany(),
-        ]);
+    return {
+      total,
+      page,
+      limit,
+      results: results.slice(start, start + limit),
+    };
+  }
 
-        // If no results found, get recent popular posts as fallback suggestions
-        let fallbackPosts: Post[] = [];
-        if (posts.length === 0 && replies.length === 0) {
-            fallbackPosts = await this.postsRepo.createQueryBuilder('post')
-                .leftJoinAndSelect('post.author', 'author')
-                .leftJoinAndSelect('post.thread', 'thread')
-                .leftJoinAndSelect('post.bu', 'bu')
-                .orderBy('post.upvote_count', 'DESC')
-                .addOrderBy('post.created_at', 'DESC')
-                .limit(5)
-                .getMany();
-        }
+  // ---------------------------
+  // INDEX STATS
+  // ---------------------------
+  stats() {
+    return {
+      documentsIndexed: this.documents.length,
+      termsIndexed: this.index.size,
+      bus: this.buMap.size,
+      threads: this.threadMap.size,
+      posts: this.documents.filter((d) => d.type === 'post').length,
+      replies: this.documents.filter((d) => d.type === 'reply').length,
+    };
+  }
 
-        // Build context for OpenAI
-        const contextDocs = [
-            ...posts.map(p => ({
-                id: `post_${p.id}`,
-                type: 'post' as const,
-                title: p.title,
-                content: p.content,
-                author: `${p.author.firstname || ''} ${p.author.lastname || ''}`.trim() || p.author.email,
-                threadName: p.thread?.name,
-                buName: p.bu?.name,
-                upvotes: p.upvote_count,
-                createdAt: p.created_at,
-            })),
-            ...replies.map(r => ({
-                id: `reply_${r.id}`,
-                type: 'reply' as const,
-                content: r.content,
-                author: `${r.author.firstname || ''} ${r.author.lastname || ''}`.trim() || r.author.email,
-                threadName: r.post?.thread?.name,
-                buName: r.post?.bu?.name,
-                upvotes: r.upvote_count,
-                createdAt: r.created_at,
-                postTitle: r.post?.title,
-            })),
-            ...fallbackPosts.map(p => ({
-                id: `post_${p.id}`,
-                type: 'post' as const,
-                title: p.title,
-                content: p.content,
-                author: `${p.author.firstname || ''} ${p.author.lastname || ''}`.trim() || p.author.email,
-                threadName: p.thread?.name,
-                buName: p.bu?.name,
-                upvotes: p.upvote_count,
-                createdAt: p.created_at,
-            })),
-        ];
+  // ---------------------------
+  // AI-POWERED SEARCH
+  // ---------------------------
+  async aiSearch(dto: AiSearchDto, userId: number): Promise<AiSearchResponse> {
+    if (!this.openai) {
+      throw new Error('OpenAI API key not configured');
+    }
 
-        // Build conversation messages
-        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-            {
-                role: 'system',
-                content: this.buildSystemPrompt(contextDocs),
-            },
-        ];
+    // Query database directly for posts and replies (no thread restriction)
+    const terms = tokenize(dto.query);
+    const searchPattern = `%${dto.query}%`;
 
-        // Add conversation history if provided
-        if (dto.conversationHistory && dto.conversationHistory.length > 0) {
-            dto.conversationHistory.forEach(msg => {
-                messages.push({
-                    role: msg.role as 'user' | 'assistant',
-                    content: msg.content,
-                });
-            });
-        }
+    // Build post query - search all posts
+    const postQuery = this.postsRepo
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.thread', 'thread')
+      .leftJoinAndSelect('post.bu', 'bu')
+      .where(
+        '(LOWER(post.title) LIKE LOWER(:pattern) OR LOWER(post.content) LIKE LOWER(:pattern))',
+        { pattern: searchPattern },
+      );
 
+    if (dto.buId) {
+      postQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
+    }
+    if (dto.threadId) {
+      postQuery.andWhere('post.thread_id = :threadId', {
+        threadId: dto.threadId,
+      });
+    }
+
+    postQuery
+      .orderBy('post.upvote_count', 'DESC')
+      .addOrderBy('post.created_at', 'DESC')
+      .limit(SEARCH_CONFIG.ai.maxContextDocuments);
+
+    // Build reply query - search all replies
+    const replyQuery = this.repliesRepo
+      .createQueryBuilder('reply')
+      .leftJoinAndSelect('reply.author', 'author')
+      .leftJoinAndSelect('reply.post', 'post')
+      .leftJoinAndSelect('post.thread', 'thread')
+      .leftJoinAndSelect('post.bu', 'bu')
+      .where('LOWER(reply.content) LIKE LOWER(:pattern)', {
+        pattern: searchPattern,
+      });
+
+    if (dto.buId) {
+      replyQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
+    }
+    if (dto.threadId) {
+      replyQuery.andWhere('post.thread_id = :threadId', {
+        threadId: dto.threadId,
+      });
+    }
+
+    replyQuery
+      .orderBy('reply.upvote_count', 'DESC')
+      .addOrderBy('reply.created_at', 'DESC')
+      .limit(SEARCH_CONFIG.ai.maxContextDocuments);
+
+    // Execute queries in parallel
+    const [posts, replies] = await Promise.all([
+      postQuery.getMany(),
+      replyQuery.getMany(),
+    ]);
+
+    // If no results found, get recent popular posts as fallback suggestions
+    let fallbackPosts: Post[] = [];
+    if (posts.length === 0 && replies.length === 0) {
+      fallbackPosts = await this.postsRepo
+        .createQueryBuilder('post')
+        .leftJoinAndSelect('post.author', 'author')
+        .leftJoinAndSelect('post.thread', 'thread')
+        .leftJoinAndSelect('post.bu', 'bu')
+        .orderBy('post.upvote_count', 'DESC')
+        .addOrderBy('post.created_at', 'DESC')
+        .limit(5)
+        .getMany();
+    }
+
+    // Build context for OpenAI
+    const contextDocs = [
+      ...posts.map((p) => ({
+        id: `post_${p.id}`,
+        type: 'post' as const,
+        title: p.title,
+        content: p.content,
+        author:
+          `${p.author.firstname || ''} ${p.author.lastname || ''}`.trim() ||
+          p.author.email,
+        threadName: p.thread?.name,
+        buName: p.bu?.name,
+        upvotes: p.upvote_count,
+        createdAt: p.created_at,
+      })),
+      ...replies.map((r) => ({
+        id: `reply_${r.id}`,
+        type: 'reply' as const,
+        content: r.content,
+        author:
+          `${r.author.firstname || ''} ${r.author.lastname || ''}`.trim() ||
+          r.author.email,
+        threadName: r.post?.thread?.name,
+        buName: r.post?.bu?.name,
+        upvotes: r.upvote_count,
+        createdAt: r.created_at,
+        postTitle: r.post?.title,
+      })),
+      ...fallbackPosts.map((p) => ({
+        id: `post_${p.id}`,
+        type: 'post' as const,
+        title: p.title,
+        content: p.content,
+        author:
+          `${p.author.firstname || ''} ${p.author.lastname || ''}`.trim() ||
+          p.author.email,
+        threadName: p.thread?.name,
+        buName: p.bu?.name,
+        upvotes: p.upvote_count,
+        createdAt: p.created_at,
+      })),
+    ];
+
+    // Build conversation messages
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      {
+        role: 'system',
+        content: this.buildSystemPrompt(contextDocs),
+      },
+    ];
+
+    // Add conversation history if provided
+    if (dto.conversationHistory && dto.conversationHistory.length > 0) {
+      dto.conversationHistory.forEach((msg) => {
         messages.push({
-            role: 'user',
-            content: dto.query,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
         });
-
-        // Call OpenAI
-        const completion = await this.openai.chat.completions.create({
-            model: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
-            messages,
-            functions: [
-                {
-                    name: 'format_search_results',
-                    description: 'Format the search results with answer and relevant source IDs',
-                    parameters: {
-                        type: 'object',
-                        properties: {
-                            answer: {
-                                type: 'string',
-                                description: 'A helpful answer with HTML anchor tags linking to posts/replies. Use format: <a href="/posts/{id}" class="post-link">{Title}</a>',
-                            },
-                            relevantSourceIds: {
-                                type: 'array',
-                                items: { type: 'string' },
-                                description: 'Array of document IDs (e.g., "post_123", "reply_456") that are cited in the answer',
-                            },
-                            suggestedFollowups: {
-                                type: 'array',
-                                items: { type: 'string' },
-                                description: 'Array of 2-3 suggested follow-up questions',
-                            },
-                        },
-                        required: ['answer', 'relevantSourceIds', 'suggestedFollowups'],
-                    },
-                },
-            ],
-            function_call: { name: 'format_search_results' },
-        });
-
-        // Parse OpenAI response
-        const functionCall = completion.choices[0].message.function_call;
-        const result = functionCall ? JSON.parse(functionCall.arguments) : null;
-
-        if (!result) {
-            throw new Error('Failed to parse OpenAI response');
-        }
-
-        // Map source IDs to full source objects
-        const sources: AiSearchSource[] = [];
-
-        for (const sourceId of result.relevantSourceIds || []) {
-            if (sourceId.startsWith('post_')) {
-                const postId = Number(sourceId.replace('post_', ''));
-                const post = posts.find(p => p.id === postId);
-                if (post) {
-                    sources.push({
-                        id: sourceId,
-                        type: 'post',
-                        postId: post.id,
-                        threadId: post.thread_id,
-                        threadName: post.thread?.name || null,
-                        buId: post.bu_id,
-                        buName: post.bu?.name || null,
-                        title: post.title,
-                        snippet: this.truncateText(post.content, SEARCH_CONFIG.ai.includeSnippetLength),
-                        url: `/posts/${post.id}`,
-                        authorName: `${post.author.firstname || ''} ${post.author.lastname || ''}`.trim() || post.author.email,
-                        upvoteCount: post.upvote_count || 0,
-                        createdAt: post.created_at,
-                        relevanceScore: 1.0,
-                    });
-                }
-            } else if (sourceId.startsWith('reply_')) {
-                const replyId = Number(sourceId.replace('reply_', ''));
-                const reply = replies.find(r => r.id === replyId);
-                if (reply) {
-                    sources.push({
-                        id: sourceId,
-                        type: 'reply',
-                        postId: reply.post_id,
-                        threadId: reply.post?.thread_id || null,
-                        threadName: reply.post?.thread?.name || null,
-                        buId: reply.post?.bu_id || null,
-                        buName: reply.post?.bu?.name || null,
-                        title: reply.post?.title,
-                        snippet: this.truncateText(reply.content, SEARCH_CONFIG.ai.includeSnippetLength),
-                        url: `/posts/${reply.post_id}#reply-${reply.id}`,
-                        authorName: `${reply.author.firstname || ''} ${reply.author.lastname || ''}`.trim() || reply.author.email,
-                        upvoteCount: reply.upvote_count || 0,
-                        createdAt: reply.created_at,
-                        relevanceScore: 1.0,
-                    });
-                }
-            }
-        }
-
-        return {
-            answer: result.answer,
-            sources,
-            suggestedFollowups: result.suggestedFollowups || [],
-            metadata: {
-                totalSources: sources.length,
-                modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
-                queryProcessedAt: new Date(),
-            },
-        };
+      });
     }
 
-    private buildSystemPrompt(contextDocs: any[]): string {
-        const docsContext = contextDocs.map((doc, idx) => {
-            if (doc.type === 'post') {
-                return `[${idx + 1}] ID: ${doc.id}
+    messages.push({
+      role: 'user',
+      content: dto.query,
+    });
+
+    // Call OpenAI
+    const completion = await this.openai.chat.completions.create({
+      model: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
+      messages,
+      functions: [
+        {
+          name: 'format_search_results',
+          description:
+            'Format the search results with answer and relevant source IDs',
+          parameters: {
+            type: 'object',
+            properties: {
+              answer: {
+                type: 'string',
+                description:
+                  'A helpful answer with HTML anchor tags linking to posts/replies. Use format: <a href="/posts/{id}" class="post-link">{Title}</a>',
+              },
+              relevantSourceIds: {
+                type: 'array',
+                items: { type: 'string' },
+                description:
+                  'Array of document IDs (e.g., "post_123", "reply_456") that are cited in the answer',
+              },
+              suggestedFollowups: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Array of 2-3 suggested follow-up questions',
+              },
+            },
+            required: ['answer', 'relevantSourceIds', 'suggestedFollowups'],
+          },
+        },
+      ],
+      function_call: { name: 'format_search_results' },
+    });
+
+    // Parse OpenAI response
+    const functionCall = completion.choices[0].message.function_call;
+    const result = functionCall ? JSON.parse(functionCall.arguments) : null;
+
+    if (!result) {
+      throw new Error('Failed to parse OpenAI response');
+    }
+
+    // Map source IDs to full source objects
+    const sources: AiSearchSource[] = [];
+
+    for (const sourceId of result.relevantSourceIds || []) {
+      if (sourceId.startsWith('post_')) {
+        const postId = Number(sourceId.replace('post_', ''));
+        const post = posts.find((p) => p.id === postId);
+        if (post) {
+          sources.push({
+            id: sourceId,
+            type: 'post',
+            postId: post.id,
+            threadId: post.thread_id,
+            threadName: post.thread?.name || null,
+            buId: post.bu_id,
+            buName: post.bu?.name || null,
+            title: post.title,
+            snippet: this.truncateText(
+              post.content,
+              SEARCH_CONFIG.ai.includeSnippetLength,
+            ),
+            url: `/posts/${post.id}`,
+            authorName:
+              `${post.author.firstname || ''} ${post.author.lastname || ''}`.trim() ||
+              post.author.email,
+            upvoteCount: post.upvote_count || 0,
+            createdAt: post.created_at,
+            relevanceScore: 1.0,
+          });
+        }
+      } else if (sourceId.startsWith('reply_')) {
+        const replyId = Number(sourceId.replace('reply_', ''));
+        const reply = replies.find((r) => r.id === replyId);
+        if (reply) {
+          sources.push({
+            id: sourceId,
+            type: 'reply',
+            postId: reply.post_id,
+            threadId: reply.post?.thread_id || null,
+            threadName: reply.post?.thread?.name || null,
+            buId: reply.post?.bu_id || null,
+            buName: reply.post?.bu?.name || null,
+            title: reply.post?.title,
+            snippet: this.truncateText(
+              reply.content,
+              SEARCH_CONFIG.ai.includeSnippetLength,
+            ),
+            url: `/posts/${reply.post_id}#reply-${reply.id}`,
+            authorName:
+              `${reply.author.firstname || ''} ${reply.author.lastname || ''}`.trim() ||
+              reply.author.email,
+            upvoteCount: reply.upvote_count || 0,
+            createdAt: reply.created_at,
+            relevanceScore: 1.0,
+          });
+        }
+      }
+    }
+
+    return {
+      answer: result.answer,
+      sources,
+      suggestedFollowups: result.suggestedFollowups || [],
+      metadata: {
+        totalSources: sources.length,
+        modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
+        queryProcessedAt: new Date(),
+      },
+    };
+  }
+
+  private buildSystemPrompt(contextDocs: any[]): string {
+    const docsContext = contextDocs
+      .map((doc, idx) => {
+        if (doc.type === 'post') {
+          return `[${idx + 1}] ID: ${doc.id}
 Type: Post
 Title: ${doc.title}
 Content: ${doc.content}
@@ -592,8 +630,8 @@ Thread: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
-            } else {
-                return `[${idx + 1}] ID: ${doc.id}
+        } else {
+          return `[${idx + 1}] ID: ${doc.id}
 Type: Reply
 Post Title: ${doc.postTitle || 'N/A'}
 Content: ${doc.content}
@@ -602,10 +640,11 @@ Thread: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
-            }
-        }).join('\n\n---\n\n');
+        }
+      })
+      .join('\n\n---\n\n');
 
-        return `You are a helpful search assistant for Compass, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
+    return `You are a helpful search assistant for Compass, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
 
 AVAILABLE DOCUMENTS:
 ${docsContext}
@@ -626,10 +665,10 @@ INSTRUCTIONS:
 CRITICAL: You must ONLY provide information from the available documents. If something is not in the documents, acknowledge that and suggest the closest related posts instead.
 
 Use the format_search_results function to structure your response.`;
-    }
+  }
 
-    private truncateText(text: string, maxLength: number): string {
-        if (text.length <= maxLength) return text;
-        return text.slice(0, maxLength) + '...';
-    }
+  private truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + '...';
+  }
 }

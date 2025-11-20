@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Trophy, Loader2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { useActiveQuiz, useSubmitQuiz, useQuizLeaderboard } from "@/hooks/api";
+import {
+  useActiveQuiz,
+  useSubmitQuiz,
+  useQuizLeaderboard,
+  useQuizSubmissions,
+} from "@/hooks/api";
+import { useAuth } from "@/hooks/use-auth";
+import { QuizLeaderboard } from "./QuizLeaderboard";
 import { cn } from "@/lib/utils";
 
 interface QuizDialogProps {
@@ -20,7 +28,11 @@ interface QuizDialogProps {
 }
 
 export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
+  const navigate = useNavigate();
   const { data: quiz, isLoading } = useActiveQuiz();
+  const { user } = useAuth();
+  const { data: submissions, isLoading: submissionsLoading } =
+    useQuizSubmissions();
   const submitQuizMutation = useSubmitQuiz();
   const { data: leaderboard } = useQuizLeaderboard(quiz?.id || 0, 10);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -30,6 +42,29 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
     totalQuestions: number;
     passed: boolean;
   } | null>(null);
+
+  // Check if user has already submitted this quiz (idempotent check)
+  const existingSubmission = useMemo(() => {
+    if (!quiz || !submissions || !user) return null;
+    const quizId = Number(quiz.id);
+    const userId = Number(user.id);
+    // Ensure both IDs are valid integers
+    if (!Number.isInteger(quizId) || !Number.isInteger(userId)) {
+      return null;
+    }
+    return submissions.find((sub) => {
+      const subQuizId = Number(sub.quiz_id);
+      const subUserId = Number(sub.user_id);
+      return (
+        Number.isInteger(subQuizId) &&
+        Number.isInteger(subUserId) &&
+        subQuizId === quizId &&
+        subUserId === userId
+      );
+    });
+  }, [quiz, submissions, user]);
+
+  const hasExistingSubmission = !!existingSubmission;
 
   const handleAnswerChange = (questionIndex: number, answerIndex: number) => {
     const newAnswers = [...answers];
@@ -42,9 +77,20 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
       return;
     }
 
+    // Prevent duplicate submissions (idempotency check)
+    if (hasExistingSubmission) {
+      return;
+    }
+
     try {
+      const quizId = Number(quiz.id);
+      // Ensure quizId is a valid integer (idempotent conversion)
+      if (!Number.isInteger(quizId) || isNaN(quizId) || quizId <= 0) {
+        throw new Error("Invalid quiz ID");
+      }
+
       const result = await submitQuizMutation.mutateAsync({
-        quizId: Number(quiz.id), // Ensure quizId is explicitly an integer
+        quizId,
         answers,
       });
       setResult({
@@ -68,7 +114,7 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
     }, 300);
   };
 
-  if (isLoading) {
+  if (isLoading || submissionsLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -96,6 +142,22 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
     );
   }
 
+  // If user has already submitted, show results immediately
+  const shouldShowResults = submitted || hasExistingSubmission;
+  const displayResult: {
+    score: number;
+    totalQuestions: number;
+    passed: boolean;
+  } | null =
+    result ||
+    (existingSubmission
+      ? {
+          score: existingSubmission.score,
+          totalQuestions: quiz.questions.length,
+          passed: existingSubmission.passed,
+        }
+      : null);
+
   const allAnswered = answers.length === quiz.questions.length;
 
   return (
@@ -108,7 +170,7 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
           </DialogTitle>
         </DialogHeader>
 
-        {!submitted ? (
+        {!shouldShowResults ? (
           <div className="space-y-6">
             <p className="text-sm text-muted-foreground">{quiz.description}</p>
 
@@ -166,7 +228,11 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={!allAnswered || submitQuizMutation.isPending}
+                disabled={
+                  !allAnswered ||
+                  submitQuizMutation.isPending ||
+                  hasExistingSubmission
+                }
               >
                 {submitQuizMutation.isPending ? (
                   <>
@@ -181,10 +247,15 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
           </div>
         ) : (
           <div className="space-y-6">
+            {hasExistingSubmission && (
+              <p className="text-sm text-muted-foreground text-center">
+                You have already completed this quiz. Here are your results:
+              </p>
+            )}
             <Card
               className={cn(
                 "border-2",
-                result?.passed
+                displayResult?.passed
                   ? "border-green-500 bg-green-50 dark:bg-green-950/20"
                   : "border-orange-500 bg-orange-50 dark:bg-orange-950/20"
               )}
@@ -193,16 +264,19 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
                 <Trophy
                   className={cn(
                     "mx-auto mb-4 h-12 w-12",
-                    result?.passed ? "text-green-600" : "text-orange-600"
+                    displayResult?.passed ? "text-green-600" : "text-orange-600"
                   )}
                 />
                 <h3 className="mb-2 text-xl font-bold">
-                  {result?.passed ? "Congratulations!" : "Keep Learning!"}
+                  {displayResult?.passed
+                    ? "Congratulations!"
+                    : "Keep Learning!"}
                 </h3>
                 <p className="mb-4 text-lg">
-                  You scored {result?.score} out of {result?.totalQuestions}
+                  You scored {displayResult?.score} out of{" "}
+                  {displayResult?.totalQuestions}
                 </p>
-                {result?.passed ? (
+                {displayResult?.passed ? (
                   <Badge className="bg-green-600">Passed</Badge>
                 ) : (
                   <Badge variant="secondary">Not Passed</Badge>
@@ -210,31 +284,31 @@ export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
               </CardContent>
             </Card>
 
-            {leaderboard && leaderboard.length > 0 && (
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="mb-4 font-semibold">Leaderboard</h4>
-                  <div className="space-y-2">
-                    {leaderboard.slice(0, 5).map((entry, index) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center justify-between rounded-lg border p-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">#{index + 1}</Badge>
-                          <span className="text-sm font-medium">
-                            {entry.user.firstname} {entry.user.lastname}
-                          </span>
-                        </div>
-                        <Badge>
-                          {entry.score}/{quiz.questions.length}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardContent className="p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <h4 className="font-semibold">Leaderboard</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      handleClose();
+                      navigate({ to: `/quiz/${quiz.id}/leaderboard` });
+                    }}
+                  >
+                    View Full Leaderboard
+                  </Button>
+                </div>
+                <QuizLeaderboard
+                  data={
+                    leaderboard && Array.isArray(leaderboard)
+                      ? leaderboard.slice(0, 10)
+                      : []
+                  }
+                  totalQuestions={quiz.questions.length}
+                />
+              </CardContent>
+            </Card>
 
             <Button onClick={handleClose} className="w-full">
               Close

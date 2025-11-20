@@ -171,15 +171,17 @@ export const LeftSidebar = () => {
         )}
         {/* Quiz Button */}
         {isAuthenticated && (
-          <Button
-            className="w-full"
-            variant="outline"
-            size="sm"
-            onClick={() => setQuizOpen(true)}
-          >
-            <Trophy className="mr-2 h-4 w-4" />
-            Weekly Quiz
-          </Button>
+          <div className="space-y-2">
+            <Button
+              className="w-full"
+              variant="outline"
+              size="sm"
+              onClick={() => setQuizOpen(true)}
+            >
+              <Trophy className="mr-2 h-4 w-4" />
+              Weekly Quiz
+            </Button>
+          </div>
         )}
 
         <Separator />

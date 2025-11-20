@@ -15,6 +15,7 @@ import ThreadDetailPage from "@/pages/ThreadDetail";
 import PopularPage from "@/pages/Popular";
 import AllPage from "@/pages/All";
 import FollowingPage from "@/pages/Following";
+import QuizLeaderboardPage from "@/pages/QuizLeaderboardView";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Shell from "@/components/Shell";
 import { WithSidebars } from "@/components/layouts/WithSidebars";
@@ -100,6 +101,12 @@ const followingRoute = createRoute({
   component: FollowingPage,
 });
 
+const quizLeaderboardRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/quiz/$quizId/leaderboard",
+  component: QuizLeaderboardPage,
+});
+
 // Create the route tree
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -113,6 +120,7 @@ const routeTree = rootRoute.addChildren([
     popularRoute,
     allRoute,
     followingRoute,
+    quizLeaderboardRoute,
   ]),
 ]);
 
