@@ -8,6 +8,10 @@ import { ThreadUser } from '../threads/thread-user.entity';
 import { Post } from '../posts/post.entity';
 import { Reply } from '../replies/reply.entity';
 import { Upvote } from '../upvotes/upvote.entity';
+import { CultureQuiz } from '../culture-builder/entities/quiz.entity';
+import { CultureQuizSubmission } from '../culture-builder/entities/quiz-submission.entity';
+import { AppreciationThread } from '../culture-builder/entities/appreciation-thread.entity';
+import { Challenge } from '../culture-builder/entities/challenge.entity';
 
 @Module({
     imports: [
@@ -19,6 +23,10 @@ import { Upvote } from '../upvotes/upvote.entity';
             Post,
             Reply,
             Upvote,
+            CultureQuiz,
+            CultureQuizSubmission,
+            AppreciationThread,
+            Challenge,
         ]),
     ],
     providers: [SeederService],
