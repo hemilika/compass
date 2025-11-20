@@ -58,9 +58,9 @@ export class Reply {
     @JoinColumn({ name: 'parent_reply_id' })
     parentReply: Reply;
 
-    @OneToMany(() => Reply, (reply) => reply.parentReply)
+    @OneToMany(() => Reply, (reply) => reply.parentReply, { onDelete: 'CASCADE' })
     childReplies: Reply[];
 
-    @OneToMany(() => Upvote, (upvote) => upvote.reply)
+    @OneToMany(() => Upvote, (upvote) => upvote.reply, { onDelete: 'CASCADE' })
     upvotes: Upvote[];
 }

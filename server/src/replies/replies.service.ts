@@ -17,7 +17,7 @@ export class RepliesService {
     private repliesRepository: Repository<Reply>,
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
-  ) {}
+  ) { }
 
   async create(
     createReplyDto: CreateReplyDto,
@@ -100,6 +100,9 @@ export class RepliesService {
 
   async remove(id: number): Promise<void> {
     const reply = await this.findOne(id);
+    // Delete associated upvotes first to avoid foreign key constraint
+    await this.repliesRepository.manager.delete('Upvote', { reply_id: id });
+    await this.repliesRepository.manager.delete(Reply, { parent_reply_id: id });
     await this.repliesRepository.remove(reply);
   }
 
