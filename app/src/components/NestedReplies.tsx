@@ -55,7 +55,7 @@ const ReplyItem = ({
   const isReplyOwner = user?.id === reply.author_id;
   const isPostOwner = post && user?.id === post.author_id;
   const isAdmin = user?.roles?.includes("admin");
-  
+
   // Can delete if: reply owner, post owner, or admin
   const canDeleteReply = isReplyOwner || isPostOwner || isAdmin;
 
@@ -144,7 +144,6 @@ const ReplyItem = ({
     }
   };
 
-
   const maxDepth = 5; // Limit nesting depth
   const canNest = depth < maxDepth;
 
@@ -195,7 +194,9 @@ const ReplyItem = ({
                 <span>•</span>
                 <span>{formatTimeAgo(reply.created_at)}</span>
               </div>
-              <div className="mb-2 whitespace-pre-wrap text-sm">{reply.content}</div>
+              <div className="mb-2 whitespace-pre-wrap text-sm">
+                {reply.content}
+              </div>
               <div className="flex items-center gap-2">
                 {isAuthenticated && canNest && (
                   <Button
@@ -376,9 +377,9 @@ export const NestedReplies = ({
   // Find the latest reply (most recently created) - recursively searches all nested replies
   const findLatestReply = (replies: Reply[]): Reply | null => {
     if (replies.length === 0) return null;
-    
+
     let latest = replies[0];
-    
+
     const checkReply = (reply: Reply) => {
       const replyDate = new Date(reply.created_at);
       const latestDate = new Date(latest.created_at);
@@ -390,7 +391,7 @@ export const NestedReplies = ({
         reply.childReplies.forEach(checkReply);
       }
     };
-    
+
     replies.forEach(checkReply);
     return latest;
   };
@@ -403,18 +404,20 @@ export const NestedReplies = ({
       // Small delay to ensure DOM is updated after reply is rendered
       const timeoutId = setTimeout(() => {
         // Find the element by data attribute
-        const latestElement = document.querySelector(`[data-reply-id="${latestReply.id}"]`) as HTMLElement;
+        const latestElement = document.querySelector(
+          `[data-reply-id="${latestReply.id}"]`
+        ) as HTMLElement;
         if (latestElement) {
           latestElement.scrollIntoView({
             behavior: "smooth",
             block: "center",
-            inline: "nearest"
+            inline: "nearest",
           });
         }
       }, 400);
       return () => clearTimeout(timeoutId);
     }
-  }, [replies.length, latestReply?.id]);
+  }, [replies.length, latestReply?.id, latestReply]);
 
   if (replyTree.length === 0) {
     return (
