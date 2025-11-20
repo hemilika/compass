@@ -42,7 +42,7 @@ export class Upvote {
     @JoinColumn({ name: 'post_id' })
     post: Post;
 
-    @ManyToOne(() => Reply, (reply) => reply.upvotes, { nullable: true })
+    @ManyToOne(() => Reply, (reply) => reply.upvotes, { nullable: true, onDelete: 'CASCADE' })
     @JoinColumn({ name: 'reply_id' })
     reply: Reply;
 }

@@ -12,6 +12,7 @@ import { RepliesModule } from './replies/replies.module';
 import { UpvotesModule } from './upvotes/upvotes.module';
 import { DatabaseModule } from './database/database.module';
 import { SearchModule } from './search/search.module';
+import { CultureBuilderModule } from './culture-builder/culture-builder.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,8 +34,9 @@ import { SearchModule } from './search/search.module';
     UpvotesModule,
     DatabaseModule,
     SearchModule,
+    CultureBuilderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
