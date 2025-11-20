@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Search as SearchIcon, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,8 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
     !!searchParams && searchParams.query.trim().length > 0
   );
 
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const handleSearch = useCallback(() => {
     if (!query.trim()) {
       setSearchParams(null);
@@ -50,11 +52,45 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
     });
   }, [query, selectedThreadId]);
 
+  // Debounced search - triggers after 1.5 seconds of no typing
+  useEffect(() => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // If query is empty, clear search immediately
+    if (!query.trim()) {
+      setSearchParams(null);
+      return;
+    }
+
+    // Set new timer for debounced search
+    debounceTimerRef.current = setTimeout(() => {
+      handleSearch();
+    }, 1500); // 1.5 seconds delay
+
+    // Cleanup function
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query, selectedThreadId, handleSearch]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
+        // Clear debounce timer when Enter is pressed
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
         handleSearch();
       } else if (e.key === "Escape") {
+        // Clear debounce timer when Escape is pressed
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
         onClose?.();
       }
     },

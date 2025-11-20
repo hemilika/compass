@@ -231,3 +231,89 @@ export interface AiSearchResponse {
     queryProcessedAt: string;
   };
 }
+
+// Quiz Types
+export interface QuizQuestion {
+  question: string;
+  alternatives: string[];
+}
+
+export interface Quiz {
+  id: number;
+  title: string;
+  description: string;
+  questions: QuizQuestion[];
+  createdAt: Date;
+}
+
+export interface QuizSubmission {
+  quizId: number;
+  answers: number[]; // array of selected answer indices
+}
+
+export interface QuizResult {
+  quizId: number;
+  score: number;
+  totalQuestions: number;
+  passed: boolean;
+  correctAnswers: number[];
+}
+
+export interface QuizSubmissionHistory {
+  id: number;
+  quiz_id: number;
+  user_id: number;
+  answers: number[];
+  score: number;
+  passed: boolean;
+  created_at: string;
+  quiz?: Quiz;
+  user?: User;
+}
+
+export interface QuizLeaderboardEntry {
+  id: number;
+  quiz_id: number;
+  user_id: number;
+  answers: number[];
+  score: number;
+  passed: boolean;
+  created_at: string;
+  user: User;
+}
+
+// Weekly Contributors Types
+export interface WeeklyContributor {
+  userId: number;
+  firstname: string;
+  lastname: string;
+  postCount: number;
+  replyCount: number;
+  totalUpvotes: number;
+}
+
+// Weekly Moderators Types
+export interface WeeklyModerator {
+  userId: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  threadCount: number;
+  threads: Array<{
+    threadId: number;
+    threadName: string;
+  }>;
+}
+
+// Weekly Top Posts Types
+export interface WeeklyTopPost {
+  id: number;
+  title: string;
+  upvotes: number;
+  replies: number;
+}
+
+export interface WeeklyAnalytics {
+  topPosts: WeeklyTopPost[];
+  totalUpvotes: number;
+}

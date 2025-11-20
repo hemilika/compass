@@ -54,3 +54,18 @@ export { useMyUpvotes } from "./upvotes/use-my-upvotes";
 // Search Hooks
 export { useSearch } from "./search/use-search";
 export { useAiSearch } from "./search/use-ai-search";
+
+// Quiz Hooks
+export { useActiveQuiz } from "./quiz/use-active-quiz";
+export { useSubmitQuiz } from "./quiz/use-submit-quiz";
+export { useQuizSubmissions } from "./quiz/use-quiz-submissions";
+export { useQuizLeaderboard } from "./quiz/use-quiz-leaderboard";
+
+// Contributors Hooks
+export { useTopContributors } from "./contributors/use-top-contributors";
+
+// Moderators Hooks
+export { useWeeklyModerators } from "./moderators/use-weekly-moderators";
+
+// Weekly Top Posts Hooks
+export { useWeeklyTopPosts } from "./posts/use-weekly-top-posts";

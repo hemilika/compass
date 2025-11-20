@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronUp, Trash2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -150,8 +150,9 @@ const ReplyItem = ({
 
   return (
     <div
+      data-reply-id={reply.id}
       className={cn(
-        "space-y-2",
+        "space-y-2 scroll-mt-20",
         depth > 0 && "ml-8 border-l-2 border-muted pl-4"
       )}
     >
@@ -189,38 +190,36 @@ const ReplyItem = ({
               </span>
             </div>
             <div className="flex-1 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{replyAuthorName}</span>
-                  <span>•</span>
-                  <span>{formatTimeAgo(reply.created_at)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isAuthenticated && canNest && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 gap-1 text-xs"
-                      onClick={() => setShowReplyForm(!showReplyForm)}
-                    >
-                      <MessageSquare className="h-3 w-3" />
-                      Reply
-                    </Button>
-                  )}
-                  {canDeleteReply && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 px-2 text-xs text-destructive"
-                      onClick={() => setShowDeleteDialog(true)}
-                      disabled={deleteReplyMutation.isPending}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
+              <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{replyAuthorName}</span>
+                <span>•</span>
+                <span>{formatTimeAgo(reply.created_at)}</span>
               </div>
-              <div className="whitespace-pre-wrap text-sm">{reply.content}</div>
+              <div className="mb-2 whitespace-pre-wrap text-sm">{reply.content}</div>
+              <div className="flex items-center gap-2">
+                {isAuthenticated && canNest && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 gap-1 text-xs"
+                    onClick={() => setShowReplyForm(!showReplyForm)}
+                  >
+                    <MessageSquare className="h-3 w-3" />
+                    Reply
+                  </Button>
+                )}
+                {canDeleteReply && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-destructive"
+                    onClick={() => setShowDeleteDialog(true)}
+                    disabled={deleteReplyMutation.isPending}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
               {reply.image_urls && reply.image_urls.length > 0 && (
                 <div className="mt-2 space-y-2">
                   {reply.image_urls.map((url, idx) => (
@@ -307,15 +306,16 @@ const ReplyItem = ({
       {reply.childReplies && reply.childReplies.length > 0 && (
         <div className="mt-2 space-y-2">
           {reply.childReplies.map((childReply) => (
-            <ReplyItem
-              key={childReply.id}
-              reply={childReply}
-              postId={postId}
-              post={post}
-              upvotedReplyIds={upvotedReplyIds}
-              depth={depth + 1}
-              onReplyCreated={onReplyCreated}
-            />
+            <div key={childReply.id} className="scroll-mt-20">
+              <ReplyItem
+                reply={childReply}
+                postId={postId}
+                post={post}
+                upvotedReplyIds={upvotedReplyIds}
+                depth={depth + 1}
+                onReplyCreated={onReplyCreated}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -340,6 +340,8 @@ export const NestedReplies = ({
   upvotedReplyIds,
   onReplyCreated,
 }: NestedRepliesProps) => {
+  const repliesContainerRef = useRef<HTMLDivElement>(null);
+
   // Organize replies into a tree structure
   const buildReplyTree = (repliesList: Reply[]): Reply[] => {
     const replyMap = new Map<number, Reply>();
@@ -371,6 +373,49 @@ export const NestedReplies = ({
 
   const replyTree = buildReplyTree(replies);
 
+  // Find the latest reply (most recently created) - recursively searches all nested replies
+  const findLatestReply = (replies: Reply[]): Reply | null => {
+    if (replies.length === 0) return null;
+    
+    let latest = replies[0];
+    
+    const checkReply = (reply: Reply) => {
+      const replyDate = new Date(reply.created_at);
+      const latestDate = new Date(latest.created_at);
+      if (replyDate > latestDate) {
+        latest = reply;
+      }
+      // Check child replies recursively
+      if (reply.childReplies && reply.childReplies.length > 0) {
+        reply.childReplies.forEach(checkReply);
+      }
+    };
+    
+    replies.forEach(checkReply);
+    return latest;
+  };
+
+  const latestReply = findLatestReply(replyTree);
+
+  // Scroll to latest reply when replies change (new reply added)
+  useEffect(() => {
+    if (latestReply && replies.length > 0) {
+      // Small delay to ensure DOM is updated after reply is rendered
+      const timeoutId = setTimeout(() => {
+        // Find the element by data attribute
+        const latestElement = document.querySelector(`[data-reply-id="${latestReply.id}"]`) as HTMLElement;
+        if (latestElement) {
+          latestElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest"
+          });
+        }
+      }, 400);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [replies.length, latestReply?.id]);
+
   if (replyTree.length === 0) {
     return (
       <p className="py-8 text-center text-muted-foreground">
@@ -380,18 +425,26 @@ export const NestedReplies = ({
   }
 
   return (
-    <div className="space-y-3">
-      {replyTree.map((reply) => (
-        <ReplyItem
-          key={reply.id}
-          reply={reply}
-          postId={postId}
-          post={post}
-          upvotedReplyIds={upvotedReplyIds}
-          depth={0}
-          onReplyCreated={onReplyCreated}
-        />
-      ))}
+    <div ref={repliesContainerRef} className="space-y-3">
+      {replyTree.map((reply) => {
+        const isLatestReply = latestReply?.id === reply.id;
+        return (
+          <div
+            key={reply.id}
+            data-reply-id={reply.id}
+            className={cn("scroll-mt-20", isLatestReply && "latest-reply")}
+          >
+            <ReplyItem
+              reply={reply}
+              postId={postId}
+              post={post}
+              upvotedReplyIds={upvotedReplyIds}
+              depth={0}
+              onReplyCreated={onReplyCreated}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 };

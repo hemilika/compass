@@ -1,5 +1,6 @@
 import Navbar from "./Navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { Chat } from "./Chat/Chat";
 
 const Shell = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -12,6 +13,7 @@ const Shell = ({ children }: { children: React.ReactNode }) => {
       <main className="relative flex-1 w-full mx-auto py-3">
         <div className="w-full">{children}</div>
       </main>
+      <Chat />
       <Toaster />
     </div>
   );

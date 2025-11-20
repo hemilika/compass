@@ -23,14 +23,15 @@ export const queryKeys = {
     details: () => [...queryKeys.threads.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.threads.details(), id] as const,
   },
-  posts: {
-    all: ["posts"] as const,
-    lists: () => [...queryKeys.posts.all, "list"] as const,
-    list: (threadId?: number) =>
-      [...queryKeys.posts.lists(), { threadId }] as const,
-    details: () => [...queryKeys.posts.all, "detail"] as const,
-    detail: (id: number) => [...queryKeys.posts.details(), id] as const,
-  },
+      posts: {
+        all: ["posts"] as const,
+        lists: () => [...queryKeys.posts.all, "list"] as const,
+        list: (threadId?: number) =>
+          [...queryKeys.posts.lists(), { threadId }] as const,
+        details: () => [...queryKeys.posts.all, "detail"] as const,
+        detail: (id: number) => [...queryKeys.posts.details(), id] as const,
+        weeklyTop: () => [...queryKeys.posts.all, "weekly-top"] as const,
+      },
   replies: {
     all: ["replies"] as const,
     lists: () => [...queryKeys.replies.all, "list"] as const,
@@ -48,6 +49,21 @@ export const queryKeys = {
     query: (params: SearchQueryParams) =>
       [...queryKeys.search.all, "query", params] as const,
     ai: () => [...queryKeys.search.all, "ai"] as const,
+  },
+  quiz: {
+    all: ["quiz"] as const,
+    active: () => [...queryKeys.quiz.all, "active"] as const,
+    submissions: () => [...queryKeys.quiz.all, "submissions"] as const,
+    leaderboard: (quizId: number) =>
+      [...queryKeys.quiz.all, "leaderboard", quizId] as const,
+  },
+  contributors: {
+    all: ["contributors"] as const,
+    weekly: () => [...queryKeys.contributors.all, "weekly"] as const,
+  },
+  moderators: {
+    all: ["moderators"] as const,
+    weekly: () => [...queryKeys.moderators.all, "weekly"] as const,
   },
 };
 

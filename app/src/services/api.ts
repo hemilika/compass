@@ -22,6 +22,13 @@ import type {
   SearchResponse,
   AiSearchRequest,
   AiSearchResponse,
+  Quiz,
+  QuizSubmission,
+  QuizResult,
+  QuizSubmissionHistory,
+  QuizLeaderboardEntry,
+  WeeklyContributor,
+  WeeklyModerator,
 } from "@/types/api";
 
 // Auth API
@@ -209,6 +216,38 @@ export const searchApi = {
 
   aiSearch: async (data: AiSearchRequest): Promise<AiSearchResponse> => {
     return api.post<AiSearchResponse, AiSearchRequest>("/search/ai", data);
+  },
+};
+
+// Culture Builder API (Quiz, Analytics, etc.)
+export const cultureBuilderApi = {
+  // Quiz endpoints
+  getActiveQuiz: async (): Promise<Quiz | { message: string }> => {
+    return api.get<Quiz | { message: string }>("/culture-builder/quiz/active");
+  },
+
+  submitQuiz: async (data: QuizSubmission): Promise<QuizResult> => {
+    return api.post<QuizResult, QuizSubmission>("/culture-builder/quiz/submit", data);
+  },
+
+  getMySubmissions: async (): Promise<QuizSubmissionHistory[]> => {
+    return api.get<QuizSubmissionHistory[]>("/culture-builder/quiz/my-submissions");
+  },
+
+  getQuizLeaderboard: async (quizId: number, limit: number = 10): Promise<QuizLeaderboardEntry[]> => {
+    return api.get<QuizLeaderboardEntry[]>(`/culture-builder/quiz/${quizId}/leaderboard`, {
+      limit: limit.toString(),
+    });
+  },
+
+  // Weekly Contributors
+  getTopContributors: async (): Promise<WeeklyContributor[]> => {
+    return api.get<WeeklyContributor[]>("/culture-builder/top/contributors");
+  },
+
+  // Weekly Analytics
+  getWeeklyAnalytics: async () => {
+    return api.get("/culture-builder/top/posts");
   },
 };
 

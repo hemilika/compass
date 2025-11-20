@@ -1,22 +1,10 @@
 import { useParams, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Plus,
-  Loader2,
-  Users,
-  UserPlus,
-  UserMinus,
-} from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Users } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  useThread,
-  usePosts,
-  useJoinThread,
-  useLeaveThread,
-} from "@/hooks/api";
+import { useThread, usePosts } from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
 import { formatTimeAgo } from "@/lib/date-utils";
 import { CreatePostDialog } from "@/components/home/sidebar/CreatePostDialog";
@@ -24,12 +12,10 @@ import { CreatePostDialog } from "@/components/home/sidebar/CreatePostDialog";
 const ThreadDetailPage = () => {
   const { hiveid } = useParams({ strict: false });
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { data: thread, isLoading: threadLoading } = useThread(Number(hiveid));
   const { data: posts, isLoading: postsLoading } = usePosts(Number(hiveid));
   const [createPostOpen, setCreatePostOpen] = useState(false);
-  const joinThreadMutation = useJoinThread();
-  const leaveThreadMutation = useLeaveThread();
 
   // Ensure we have valid posts and deduplicate by id
   // This hook must be called before any early returns
@@ -40,6 +26,8 @@ const ThreadDetailPage = () => {
       new Map(validPosts.map((post) => [post.id, post])).values()
     );
   }, [posts]);
+
+  const memberCount = thread?.threadUsers?.length || 0;
 
   if (threadLoading) {
     return (
@@ -56,22 +44,6 @@ const ThreadDetailPage = () => {
       </div>
     );
   }
-
-  const memberCount = thread.threadUsers?.length || 0;
-  const isFollowing =
-    isAuthenticated &&
-    user &&
-    thread.threadUsers?.some((tu) => tu.user_id === user.id);
-
-  const handleFollowToggle = async () => {
-    if (!isAuthenticated || !user) return;
-
-    if (isFollowing) {
-      await leaveThreadMutation.mutateAsync(thread.id);
-    } else {
-      await joinThreadMutation.mutateAsync(thread.id);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -114,33 +86,7 @@ const ThreadDetailPage = () => {
             </div>
             <div className="flex items-center gap-2">
               {isAuthenticated && (
-                <Button
-                  variant={isFollowing ? "default" : "outline"}
-                  size="sm"
-                  onClick={handleFollowToggle}
-                  disabled={
-                    joinThreadMutation.isPending ||
-                    leaveThreadMutation.isPending
-                  }
-                >
-                  {isFollowing ? (
-                    <>
-                      <UserMinus className="mr-2 h-4 w-4" />
-                      Unfollow
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Follow
-                    </>
-                  )}
-                </Button>
-              )}
-              {isAuthenticated && (
-                <Button
-                  onClick={() => setCreatePostOpen(true)}
-                  className="ml-4"
-                >
+                <Button onClick={() => setCreatePostOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Post
                 </Button>

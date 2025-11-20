@@ -4,7 +4,7 @@ import {
   createRoute,
   Outlet,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+// import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import HomePage from "@/pages/Home";
 import LoginPage from "@/pages/Login";
 import SignupPage from "@/pages/Signup";
@@ -26,7 +26,7 @@ const rootRoute = createRootRoute({
       <Shell>
         <Outlet />
       </Shell>
-      {import.meta.env.DEV && <TanStackRouterDevtools />}
+      {/* {import.meta.env.DEV && <TanStackRouterDevtools initialIsOpen={false} />} */}
     </ErrorBoundary>
   ),
 });

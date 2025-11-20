@@ -44,6 +44,7 @@ export const useLeaveThread = () => {
     onSuccess: async (_data, threadId) => {
       // Get the thread name for the toast message
       const thread = await threadsApi.getById(threadId);
+      // Invalidate queries - this will trigger automatic refetch
       queryClient.invalidateQueries({
         queryKey: queryKeys.threads.detail(threadId),
       });

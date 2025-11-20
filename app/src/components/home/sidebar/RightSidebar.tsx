@@ -1,10 +1,17 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
+import { TrendingUp, Sparkles, Loader2, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { useUserProfile, useThreads, useBusinessUnits } from "@/hooks/api";
+import {
+  useUserProfile,
+  useThreads,
+  useBusinessUnits,
+} from "@/hooks/api";
+import { QuizDialog } from "@/components/Quiz/QuizDialog";
+import { useState } from "react";
 
 export const RightSidebar = () => {
   const navigate = useNavigate();

@@ -62,10 +62,6 @@ const PostDetailPage = () => {
     );
   }, [myUpvotes]);
 
-  const handleReplyCreated = () => {
-    // Replies will be refetched automatically via query invalidation
-  };
-
   const replyForm = useForm({
     defaultValues: {
       content: "",
@@ -330,7 +326,7 @@ const PostDetailPage = () => {
             postId={post.id}
             post={post}
             upvotedReplyIds={upvotedReplyIds}
-            onReplyCreated={handleReplyCreated}
+            onReplyCreated={() => {}}
           />
         ) : (
           <p className="py-8 text-center text-muted-foreground">
