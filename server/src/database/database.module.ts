@@ -14,22 +14,22 @@ import { AppreciationThread } from '../culture-builder/entities/appreciation-thr
 import { Challenge } from '../culture-builder/entities/challenge.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            User,
-            Bu,
-            Thread,
-            ThreadUser,
-            Post,
-            Reply,
-            Upvote,
-            CultureQuiz,
-            CultureQuizSubmission,
-            AppreciationThread,
-            Challenge,
-        ]),
-    ],
-    providers: [SeederService],
-    exports: [SeederService],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      Bu,
+      Thread,
+      ThreadUser,
+      Post,
+      Reply,
+      Upvote,
+      CultureQuiz,
+      CultureQuizSubmission,
+      AppreciationThread,
+      Challenge,
+    ]),
+  ],
+  providers: [SeederService],
+  exports: [SeederService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

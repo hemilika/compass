@@ -19,7 +19,7 @@ export class ThreadsService {
     private buRepository: Repository<Bu>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async create(
     createThreadDto: CreateThreadDto,
@@ -80,7 +80,15 @@ export class ThreadsService {
   }
 
   async remove(id: number): Promise<void> {
-    const thread = await this.findOne(id);
+    // Idempotent: Check if thread exists first
+    const thread = await this.threadsRepository.findOne({
+      where: { id },
+    });
+
+    if (!thread) {
+      // Thread doesn't exist, return silently (idempotent behavior)
+      return;
+    }
 
     // Remove all thread-user relationships
     await this.threadUsersRepository.delete({ thread_id: id });
@@ -115,17 +123,15 @@ export class ThreadsService {
   }
 
   async removeUserFromThread(threadId: number, userId: number): Promise<void> {
+    // Idempotent: Check if user is a member first
     const threadUser = await this.threadUsersRepository.findOne({
       where: { thread_id: threadId, user_id: userId },
     });
 
     if (threadUser) {
       await this.threadUsersRepository.remove(threadUser);
-    } else {
-      throw new NotFoundException(
-        `User ${userId} is not a member of thread ${threadId}`,
-      );
     }
+    // If user is not a member, return silently (idempotent behavior)
   }
 
   async isUserModerator(threadId: number, userId: number): Promise<boolean> {
@@ -135,13 +141,16 @@ export class ThreadsService {
     return !!threadUser;
   }
 
-  async getRecommendedThreads(userId: number, limit: number = 10): Promise<any[]> {
+  async getRecommendedThreads(
+    userId: number,
+    limit: number = 10,
+  ): Promise<any[]> {
     // Get user's current threads
     const userThreads = await this.threadUsersRepository.find({
       where: { user_id: userId },
       select: ['thread_id'],
     });
-    const joinedThreadIds = userThreads.map(ut => ut.thread_id);
+    const joinedThreadIds = userThreads.map((ut) => ut.thread_id);
 
     // Get user with full profile including interests
     const user = await this.userRepository.findOne({
@@ -159,10 +168,13 @@ export class ThreadsService {
     });
 
     // Separate joined and unjoined threads
-    const unjoinedThreads = allThreads.filter(t => !joinedThreadIds.includes(t.id));
+    const unjoinedThreads = allThreads.filter(
+      (t) => !joinedThreadIds.includes(t.id),
+    );
 
     // If less than limit unjoined threads, we'll need all threads
-    const threadsToScore = unjoinedThreads.length >= limit ? unjoinedThreads : allThreads;
+    const threadsToScore =
+      unjoinedThreads.length >= limit ? unjoinedThreads : allThreads;
 
     if (threadsToScore.length === 0) {
       return [];
@@ -176,7 +188,7 @@ export class ThreadsService {
         });
         const isJoined = joinedThreadIds.includes(thread.id);
         return { ...thread, member_count: memberCount, isJoined };
-      })
+      }),
     );
 
     // Build user interest keywords from techstack, hobbies, and roles
@@ -184,21 +196,22 @@ export class ThreadsService {
       ...(user.techstack || []),
       ...(user.hobbies || []),
       ...(user.user_roles || []),
-    ].map(k => k.toLowerCase());
+    ].map((k) => k.toLowerCase());
 
     // Calculate relevance score for each thread
     const scoredThreads = threadsWithCounts.map((thread) => {
       let score = 0;
-      const threadText = `${thread.name} ${thread.description || ''}`.toLowerCase();
+      const threadText =
+        `${thread.name} ${thread.description || ''}`.toLowerCase();
 
       // 1. Match user interests with thread content (highest weight)
-      userKeywords.forEach(keyword => {
+      userKeywords.forEach((keyword) => {
         if (threadText.includes(keyword.toLowerCase())) {
           score += 10; // High score for direct keyword match
         }
         // Partial match (contains part of the keyword)
         const words = threadText.split(/\s+/);
-        words.forEach(word => {
+        words.forEach((word) => {
           if (word.includes(keyword) || keyword.includes(word)) {
             score += 3; // Lower score for partial match
           }
@@ -220,7 +233,9 @@ export class ThreadsService {
       score += Math.min(memberCount * 0.5, 10); // Cap at 10 points
 
       // 5. Recency bonus
-      const daysSinceCreation = (Date.now() - new Date(thread.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      const daysSinceCreation =
+        (Date.now() - new Date(thread.created_at).getTime()) /
+        (1000 * 60 * 60 * 24);
       if (daysSinceCreation < 7) {
         score += 5; // New threads get a boost
       }
@@ -232,21 +247,22 @@ export class ThreadsService {
         ...thread,
         relevanceScore: score,
         memberCount: memberCount,
-        matchedKeywords: userKeywords.filter(k => threadText.includes(k.toLowerCase())),
+        matchedKeywords: userKeywords.filter((k) =>
+          threadText.includes(k.toLowerCase()),
+        ),
         isJoined: thread.isJoined,
       };
     });
 
     // Sort: unjoined threads first, then by relevance score
-    let sortedThreads = scoredThreads
-      .sort((a, b) => {
-        // Prioritize unjoined threads
-        if (a.isJoined !== b.isJoined) {
-          return a.isJoined ? 1 : -1;
-        }
-        // Then sort by relevance
-        return b.relevanceScore - a.relevanceScore;
-      });
+    let sortedThreads = scoredThreads.sort((a, b) => {
+      // Prioritize unjoined threads
+      if (a.isJoined !== b.isJoined) {
+        return a.isJoined ? 1 : -1;
+      }
+      // Then sort by relevance
+      return b.relevanceScore - a.relevanceScore;
+    });
 
     // Return up to limit
     return sortedThreads.slice(0, limit);

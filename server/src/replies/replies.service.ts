@@ -17,7 +17,7 @@ export class RepliesService {
     private repliesRepository: Repository<Reply>,
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
-  ) { }
+  ) {}
 
   async create(
     createReplyDto: CreateReplyDto,

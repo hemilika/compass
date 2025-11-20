@@ -28,6 +28,7 @@ export interface Thread {
   name: string;
   description?: string;
   bu_id?: number;
+  creator_id: number;
   created_at: string;
   bu?: BusinessUnit;
   threadUsers?: ThreadUser[];

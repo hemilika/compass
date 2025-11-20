@@ -20,30 +20,30 @@ import { ThreadUser } from '../threads/thread-user.entity';
 import { Upvote } from '../upvotes/upvote.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            AppreciationThread,
-            Challenge,
-            CultureQuiz,
-            CultureQuizSubmission,
-            Post,
-            Reply,
-            User,
-            Bu,
-            Thread,
-            ThreadUser,
-            Upvote,
-        ]),
-        ScheduleModule.forRoot(),
-    ],
-    controllers: [CultureBuilderController],
-    providers: [
-        CultureBuilderService,
-        CultureAnalyticsService,
-        CultureSchedulerService,
-        CultureAiService,
-        CultureQuizService,
-    ],
-    exports: [CultureBuilderService],
+  imports: [
+    TypeOrmModule.forFeature([
+      AppreciationThread,
+      Challenge,
+      CultureQuiz,
+      CultureQuizSubmission,
+      Post,
+      Reply,
+      User,
+      Bu,
+      Thread,
+      ThreadUser,
+      Upvote,
+    ]),
+    ScheduleModule.forRoot(),
+  ],
+  controllers: [CultureBuilderController],
+  providers: [
+    CultureBuilderService,
+    CultureAnalyticsService,
+    CultureSchedulerService,
+    CultureAiService,
+    CultureQuizService,
+  ],
+  exports: [CultureBuilderService],
 })
-export class CultureBuilderModule { }
+export class CultureBuilderModule {}

@@ -1,31 +1,37 @@
-import { IsArray, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ConversationMessage {
-    @IsString()
-    role: 'user' | 'assistant';
+  @IsString()
+  role: 'user' | 'assistant';
 
-    @IsString()
-    @MaxLength(2000)
-    content: string;
+  @IsString()
+  @MaxLength(2000)
+  content: string;
 }
 
 export class AiSearchDto {
-    @IsString()
-    @MaxLength(500)
-    query: string;
+  @IsString()
+  @MaxLength(500)
+  query: string;
 
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ConversationMessage)
-    conversationHistory?: ConversationMessage[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ConversationMessage)
+  conversationHistory?: ConversationMessage[];
 
-    @IsOptional()
-    @IsString()
-    buId?: string;
+  @IsOptional()
+  @IsString()
+  buId?: string;
 
-    @IsOptional()
-    @IsString()
-    threadId?: string;
+  @IsOptional()
+  @IsString()
+  threadId?: string;
 }

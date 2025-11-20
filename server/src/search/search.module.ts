@@ -16,4 +16,4 @@ import { ThreadUser } from 'src/threads/thread-user.entity';
   controllers: [SearchController],
   providers: [SearchService],
 })
-export class SearchModule { }
+export class SearchModule {}

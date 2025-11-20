@@ -1,12 +1,12 @@
 import { IsInt, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
 
 export class SubmitQuizDto {
-    @IsInt()
-    quizId: number;
+  @IsInt()
+  quizId: number;
 
-    @IsArray()
-    @ArrayMinSize(5)
-    @ArrayMaxSize(5)
-    @IsInt({ each: true })
-    answers: number[];
+  @IsArray()
+  @ArrayMinSize(5)
+  @ArrayMaxSize(5)
+  @IsInt({ each: true })
+  answers: number[];
 }

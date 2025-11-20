@@ -62,14 +62,16 @@ export const THREADS: Thread[] = [
   {
     id: 1,
     name: 'NestJS Backend Architecture',
-    description: 'Discuss backend patterns, performance, and architecture for NestJS services.',
+    description:
+      'Discuss backend patterns, performance, and architecture for NestJS services.',
     buId: 1,
     createdAt: new Date('2025-11-18T09:00:00Z'),
   },
   {
     id: 2,
     name: 'React Frontend Best Practices',
-    description: 'State management, hooks, and performance tuning for React apps.',
+    description:
+      'State management, hooks, and performance tuning for React apps.',
     buId: 1,
     createdAt: new Date('2025-11-18T09:10:00Z'),
   },

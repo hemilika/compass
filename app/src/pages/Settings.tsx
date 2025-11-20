@@ -9,6 +9,11 @@ import {
   Trash2,
   Edit,
   Settings as SettingsIcon,
+  Code,
+  Briefcase,
+  Heart,
+  Building2,
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -133,6 +138,7 @@ const SettingsPage = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Email */}
           <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3 mb-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
@@ -144,6 +150,121 @@ const SettingsPage = () => {
               {displayUser?.email}
             </p>
           </div>
+
+          {/* Name */}
+          {(displayUser?.firstname || displayUser?.lastname) && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Full Name
+                </p>
+              </div>
+              <p className="text-foreground font-medium ml-7">
+                {displayUser.firstname || ""} {displayUser.lastname || ""}
+              </p>
+            </div>
+          )}
+
+          {/* Business Unit */}
+          {displayUser?.bu && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Business Unit
+                </p>
+              </div>
+              <p className="text-foreground font-medium ml-7">
+                {displayUser.bu.name}
+              </p>
+            </div>
+          )}
+
+          {/* Tech Stack */}
+          {displayUser?.techstack && displayUser.techstack.length > 0 && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <Code className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Tech Stack
+                </p>
+              </div>
+              <div className="ml-7 flex flex-wrap gap-2">
+                {displayUser.techstack.map((tech, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary border border-primary/20"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* User Roles */}
+          {displayUser?.user_roles && displayUser.user_roles.length > 0 && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Roles
+                </p>
+              </div>
+              <div className="ml-7 flex flex-wrap gap-2">
+                {displayUser.user_roles.map((role, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center rounded-md bg-secondary/50 px-2 py-1 text-xs font-medium text-foreground border border-border"
+                  >
+                    {role}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {displayUser?.hobbies && displayUser.hobbies.length > 0 && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <Heart className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Hobbies
+                </p>
+              </div>
+              <div className="ml-7 flex flex-wrap gap-2">
+                {displayUser.hobbies.map((hobby, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center rounded-md bg-accent/50 px-2 py-1 text-xs font-medium text-foreground border border-border"
+                  >
+                    {hobby}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Account Created */}
+          {displayUser?.created_at && (
+            <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Member Since
+                </p>
+              </div>
+              <p className="text-foreground font-medium ml-7">
+                {new Date(displayUser.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -139,7 +139,7 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
 
   return (
     <div className="relative w-full max-w-2xl">
-      <div className="flex gap-2">
+      <div className="flex gap-2 w-full">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -176,7 +176,7 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
       </div>
 
       {/* Filters */}
-      <div className="mt-2 grid grid-cols-2 xl:grid-cols-3 gap-2">
+      <div className="mt-2 flex gap-2 items-center content-center">
         <Select
           value={selectedThreadId || "all"}
           onValueChange={(value) => {

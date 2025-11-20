@@ -6,16 +6,16 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
-    @Post('signup')
-    async signup(@Body() signupDto: SignupDto) {
-        return this.authService.signup(signupDto);
-    }
+  @Post('signup')
+  async signup(@Body() signupDto: SignupDto) {
+    return this.authService.signup(signupDto);
+  }
 
-    @UseGuards(LocalAuthGuard)
-    @Post('login')
-    async login(@Request() req, @Body() loginDto: LoginDto) {
-        return this.authService.login(req.user);
-    }
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  async login(@Request() req, @Body() loginDto: LoginDto) {
+    return this.authService.login(req.user);
+  }
 }

@@ -59,22 +59,15 @@ const FollowingPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Heart className="h-5 w-5 text-primary fill-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Following</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {followingHives.length === 0
-                ? "Hives you follow will appear here"
-                : `${followingHives.length} ${
-                    followingHives.length === 1 ? "hive" : "hives"
-                  }`}
-            </p>
-          </div>
-        </div>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold">Following</h1>
+        <p className="text-sm text-muted-foreground">
+          {followingHives.length === 0
+            ? "Hives you follow will appear here"
+            : `${followingHives.length} ${
+                followingHives.length === 1 ? "hive" : "hives"
+              }`}
+        </p>
       </div>
 
       {followingHives.length === 0 ? (

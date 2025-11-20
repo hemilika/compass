@@ -13,4 +13,4 @@ import { User } from '../users/user.entity';
   providers: [ThreadsService],
   exports: [ThreadsService],
 })
-export class ThreadsModule { }
+export class ThreadsModule {}

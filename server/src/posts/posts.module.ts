@@ -8,9 +8,9 @@ import { User } from '../users/user.entity';
 import { Bu } from '../bu/bu.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Post, Thread, User, Bu])],
-    controllers: [PostsController],
-    providers: [PostsService],
-    exports: [PostsService],
+  imports: [TypeOrmModule.forFeature([Post, Thread, User, Bu])],
+  controllers: [PostsController],
+  providers: [PostsService],
+  exports: [PostsService],
 })
-export class PostsModule { }
+export class PostsModule {}
