@@ -21,10 +21,10 @@ export const useUpdateReply = () => {
           queryKey: queryKeys.posts.detail(data.post_id),
         });
       }
-      toast.success("Reply updated successfully");
+      toast.success("You updated your reply");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to update reply");
+      toast.error(error.message || "You couldn't update the reply");
     },
   });
 };

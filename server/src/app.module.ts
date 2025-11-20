@@ -22,7 +22,7 @@ import { SearchModule } from './search/search.module';
       type: 'postgres',
       url: process.env.DB_URL,
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     AuthModule,
     UsersModule,

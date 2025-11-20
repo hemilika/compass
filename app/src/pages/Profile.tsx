@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useUserProfile, useUpdateUser, usePosts } from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/lib/date-utils";
 import type { UpdateUserRequest } from "@/types/api";
 
 const ProfilePage = () => {
@@ -122,8 +122,8 @@ const ProfilePage = () => {
           {/* Avatar and Basic Info */}
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24">
-              <AvatarImage src="/logos/honeycomb-logo.png" alt="User" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+              <AvatarImage src="NO-LOGO" alt="User" />
+              <AvatarFallback className="bg-logo-primary text-primary-foreground text-2xl">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
@@ -323,18 +323,7 @@ const ProfilePage = () => {
                   </h3>
                   <p className="mt-1">
                     {displayUser.created_at
-                      ? (() => {
-                          try {
-                            return formatDistanceToNow(
-                              new Date(displayUser.created_at),
-                              {
-                                addSuffix: true,
-                              }
-                            );
-                          } catch {
-                            return "Unknown date";
-                          }
-                        })()
+                      ? formatTimeAgo(displayUser.created_at)
                       : "Unknown date"}
                   </p>
                 </div>
@@ -372,11 +361,7 @@ const ProfilePage = () => {
                       <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                         <span>{post.upvote_count} upvotes</span>
                         <span>{post.replies?.length || 0} comments</span>
-                        <span>
-                          {formatDistanceToNow(new Date(post.created_at), {
-                            addSuffix: true,
-                          })}
-                        </span>
+                        <span>{formatTimeAgo(post.created_at)}</span>
                       </div>
                     </div>
                   </div>

@@ -8,7 +8,7 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/lib/date-utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -82,14 +82,6 @@ const AllPage = () => {
     );
   }, [posts]);
 
-  const formatTimeAgo = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    } catch {
-      return "Unknown time";
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -120,152 +112,151 @@ const AllPage = () => {
 
   return (
     <div className="space-y-4">
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold">All Posts</h1>
-            <p className="text-sm text-muted-foreground">
-              All posts from all threads, sorted by newest
-            </p>
-          </div>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold">All Posts</h1>
+        <p className="text-sm text-muted-foreground">
+          All posts from all threads, sorted by newest
+        </p>
+      </div>
 
-          <div className="space-y-4">
-            {allPosts.map((post: Post) => {
-              const isUpvoted = upvotedPostIds.has(post.id);
-              const replyCount = post.replies?.length || 0;
-              const authorName =
-                post.author?.firstname?.trim() && post.author?.lastname?.trim()
-                  ? `${post.author.firstname.trim()} ${post.author.lastname.trim()}`
-                  : post.author?.email?.split("@")[0] || "Unknown";
-              const threadName = post.thread?.name || "Unknown Thread";
+      <div className="space-y-4">
+        {allPosts.map((post: Post) => {
+          const isUpvoted = upvotedPostIds.has(post.id);
+          const replyCount = post.replies?.length || 0;
+          const authorName =
+            post.author?.firstname?.trim() && post.author?.lastname?.trim()
+              ? `${post.author.firstname.trim()} ${post.author.lastname.trim()}`
+              : post.author?.email?.split("@")[0] || "Unknown";
+          const threadName = post.thread?.name || "Unknown Hive";
 
-              return (
-                <Card
-                  key={post.id}
-                  className="overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-0">
-                    <div className="flex">
-                      <div className="flex flex-col items-center gap-1 bg-muted/30 px-2 py-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            "h-8 w-8 rounded-sm",
-                            isUpvoted && "text-primary",
-                            (!isAuthenticated ||
-                              upvoteMutation.isPending ||
-                              removeUpvoteMutation.isPending) &&
-                              "opacity-50 cursor-not-allowed"
-                          )}
-                          onClick={() => handleUpvote(post.id)}
-                          disabled={
-                            !isAuthenticated ||
-                            upvoteMutation.isPending ||
-                            removeUpvoteMutation.isPending
-                          }
-                        >
-                          <ChevronUp className="h-5 w-5" />
-                        </Button>
-                        <span
-                          className={cn(
-                            "text-xs font-semibold",
-                            isUpvoted && "text-primary"
-                          )}
-                        >
-                          {post.upvote_count}
-                        </span>
-                      </div>
+          return (
+            <Card
+              key={post.id}
+              className="overflow-hidden hover:shadow-md transition-shadow"
+            >
+              <CardContent className="p-0">
+                <div className="flex">
+                  <div className="flex flex-col items-center gap-1 bg-muted/30 px-2 py-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-8 w-8 rounded-sm",
+                        isUpvoted && "text-primary",
+                        (!isAuthenticated ||
+                          upvoteMutation.isPending ||
+                          removeUpvoteMutation.isPending) &&
+                          "opacity-50 cursor-not-allowed"
+                      )}
+                      onClick={() => handleUpvote(post.id)}
+                      disabled={
+                        !isAuthenticated ||
+                        upvoteMutation.isPending ||
+                        removeUpvoteMutation.isPending
+                      }
+                    >
+                      <ChevronUp className="h-5 w-5" />
+                    </Button>
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        isUpvoted && "text-primary"
+                      )}
+                    >
+                      {post.upvote_count}
+                    </span>
+                  </div>
 
-                      <div className="flex-1 p-4">
-                        <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
-                          <Link
-                            to="/threads/$threadId"
-                            params={{ threadId: post.thread_id.toString() }}
-                            className="font-semibold text-foreground hover:underline"
-                          >
-                            {threadName}
-                          </Link>
-                          <span>•</span>
-                          <span>Posted by {authorName}</span>
-                          <span>•</span>
-                          <span>{formatTimeAgo(post.created_at)}</span>
-                        </div>
-
-                        <Link
-                          to="/posts/$postId"
-                          params={{ postId: post.id.toString() }}
-                        >
-                          <h3 className="mb-2 text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
-                            {post.title}
-                          </h3>
-                        </Link>
-
-                        <p className="mb-3 text-sm text-muted-foreground line-clamp-3">
-                          {post.content}
-                        </p>
-
-                        {post.image_urls && post.image_urls.length > 0 && (
-                          <div className="mb-3 space-y-2">
-                            {post.image_urls.slice(0, 3).map((url, idx) => (
-                              <img
-                                key={idx}
-                                src={url}
-                                alt={`Post image ${idx + 1}`}
-                                className="w-full rounded-lg object-cover max-h-64"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display =
-                                    "none";
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2 text-xs"
-                            onClick={() =>
-                              navigate({
-                                to: "/posts/$postId",
-                                params: { postId: post.id.toString() },
-                              })
-                            }
-                          >
-                            <MessageCircle className="h-4 w-4" />
-                            {replyCount}{" "}
-                            {replyCount === 1 ? "Comment" : "Comments"}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2 text-xs"
-                            onClick={() => handleShare(post)}
-                          >
-                            {sharedPostId === post.id ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Share2 className="h-4 w-4" />
-                            )}
-                            Share
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-2 text-xs"
-                            onClick={handleSave}
-                          >
-                            <Bookmark className="h-4 w-4" />
-                            Save
-                          </Button>
-                        </div>
-                      </div>
+                  <div className="flex-1 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <Link
+                        to="/hives/$hiveid"
+                        params={{ hiveid: post.thread_id.toString() }}
+                        className="font-semibold text-foreground hover:underline"
+                      >
+                        {threadName}
+                      </Link>
+                      <span>•</span>
+                      <span>Posted by {authorName}</span>
+                      <span>•</span>
+                      <span>{formatTimeAgo(post.created_at)}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+
+                    <Link
+                      to="/posts/$postId"
+                      params={{ postId: post.id.toString() }}
+                    >
+                      <h3 className="mb-2 text-lg font-semibold leading-tight hover:text-primary transition-colors cursor-pointer">
+                        {post.title}
+                      </h3>
+                    </Link>
+
+                    <p className="mb-3 text-sm text-muted-foreground line-clamp-3">
+                      {post.content}
+                    </p>
+
+                    {post.image_urls && post.image_urls.length > 0 && (
+                      <div className="mb-3 space-y-2">
+                        {post.image_urls.slice(0, 3).map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={url}
+                            alt={`Post image ${idx + 1}`}
+                            className="w-full rounded-lg object-cover max-h-64"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2 text-xs"
+                        onClick={() =>
+                          navigate({
+                            to: "/posts/$postId",
+                            params: { postId: post.id.toString() },
+                          })
+                        }
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        {replyCount} {replyCount === 1 ? "Comment" : "Comments"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2 text-xs"
+                        onClick={() => handleShare(post)}
+                      >
+                        {sharedPostId === post.id ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Share2 className="h-4 w-4" />
+                        )}
+                        Share
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2 text-xs"
+                        onClick={handleSave}
+                      >
+                        <Bookmark className="h-4 w-4" />
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 };

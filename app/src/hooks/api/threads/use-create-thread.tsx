@@ -9,12 +9,12 @@ export const useCreateThread = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateThreadRequest) => threadsApi.create(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
-      toast.success("Thread created successfully");
+      toast.success(`You created ${data.name} hive`);
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to create thread");
+      toast.error(error.message || "You couldn't create the hive");
     },
   });
 };

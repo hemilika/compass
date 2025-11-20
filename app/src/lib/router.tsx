@@ -14,6 +14,7 @@ import SettingsPage from "@/pages/Settings";
 import ThreadDetailPage from "@/pages/ThreadDetail";
 import PopularPage from "@/pages/Popular";
 import AllPage from "@/pages/All";
+import FollowingPage from "@/pages/Following";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Shell from "@/components/Shell";
 import { WithSidebars } from "@/components/layouts/WithSidebars";
@@ -77,7 +78,7 @@ const postDetailRoute = createRoute({
 
 const threadDetailRoute = createRoute({
   getParentRoute: () => withSidebarsRoute,
-  path: "/threads/$threadId",
+  path: "/hives/$hiveid",
   component: ThreadDetailPage,
 });
 
@@ -93,6 +94,12 @@ const allRoute = createRoute({
   component: AllPage,
 });
 
+const followingRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/following",
+  component: FollowingPage,
+});
+
 // Create the route tree
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -105,6 +112,7 @@ const routeTree = rootRoute.addChildren([
     threadDetailRoute,
     popularRoute,
     allRoute,
+    followingRoute,
   ]),
 ]);
 

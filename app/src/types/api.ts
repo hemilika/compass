@@ -160,10 +160,6 @@ export interface UpdateBuRequest {
   name: string;
 }
 
-export interface AddUserToThreadRequest {
-  role: "member" | "moderator";
-}
-
 // Search Types
 export interface SearchQueryParams {
   query: string;

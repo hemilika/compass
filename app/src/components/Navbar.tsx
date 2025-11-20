@@ -28,9 +28,9 @@ const Navbar = () => {
               to="/"
               className="flex items-center space-x-2 text-xl font-bold text-zinc-900 dark:text-zinc-50 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
             >
-              <div className="w-8 h-8 bg-linear-to-br from-zinc-900 to-zinc-600 dark:from-zinc-100 dark:to-zinc-400 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8  rounded-lg flex items-center justify-center">
                 <img
-                  src="/logos/honeycomb-logo.png"
+                  src="/logos/honeycomb-transparent-only-logo.png"
                   alt="Honeycomb Logo"
                   className="w-full h-full object-contain"
                 />

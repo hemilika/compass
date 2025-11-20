@@ -66,7 +66,7 @@ const SettingsPage = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-primary/20">
-                <AvatarImage src="/logos/honeycomb-logo.png" alt="User" />
+                <AvatarImage src="NO-LOGO" alt="User" />
                 <AvatarFallback className="bg-linear-to-br from-primary to-primary/60 text-primary-foreground text-lg font-bold">
                   {userInitials}
                 </AvatarFallback>

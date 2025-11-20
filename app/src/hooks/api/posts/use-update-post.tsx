@@ -15,10 +15,10 @@ export const useUpdatePost = () => {
         queryKey: queryKeys.posts.detail(variables.id),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.lists() });
-      toast.success("Post updated successfully");
+      toast.success("You updated your post");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to update post");
+      toast.error(error.message || "You couldn't update the post");
     },
   });
 };

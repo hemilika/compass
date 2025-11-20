@@ -27,8 +27,8 @@ export { useThread } from "./threads/use-thread";
 export { useCreateThread } from "./threads/use-create-thread";
 export { useUpdateThread } from "./threads/use-update-thread";
 export { useDeleteThread } from "./threads/use-delete-thread";
-export { useAddUserToThread } from "./threads/use-add-user-to-thread";
-export { useRemoveUserFromThread } from "./threads/use-remove-user-from-thread";
+export { useJoinThread } from "./threads/use-join-thread";
+export { useLeaveThread } from "./threads/use-leave-thread";
 
 // Post Hooks
 export { usePosts } from "./posts/use-posts";

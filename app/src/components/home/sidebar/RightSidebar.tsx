@@ -30,7 +30,7 @@ export const RightSidebar = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src="/logos/honeycomb-logo.png" alt="User" />
+                <AvatarImage src="NO-LOGO" alt="User" />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {userInitials}
                 </AvatarFallback>
@@ -107,11 +107,11 @@ export const RightSidebar = () => {
                 <div key={thread.id}>
                   <div className="flex items-center justify-between">
                     <Link
-                      to="/threads/$threadId"
-                      params={{ threadId: thread.id.toString() }}
+                      to="/hives/$hiveid"
+                      params={{ hiveid: thread.id.toString() }}
                       className="flex items-center gap-2 flex-1 hover:opacity-80 transition-opacity"
                     >
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
+                      <div className="h-8 w-8 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
                         {thread.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -133,26 +133,6 @@ export const RightSidebar = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Footer Links */}
-      <div className="space-y-2 text-xs text-muted-foreground">
-        <div className="flex flex-wrap gap-2">
-          <a href="#" className="hover:underline">
-            Help
-          </a>
-          <span>•</span>
-          <a href="#" className="hover:underline">
-            About
-          </a>
-          <span>•</span>
-          <a href="#" className="hover:underline">
-            Terms
-          </a>
-        </div>
-        <p className="pt-2 text-[10px]">
-          © 2024 Honeycomb. All rights reserved.
-        </p>
-      </div>
     </aside>
   );
 };

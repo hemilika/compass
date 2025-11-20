@@ -1,13 +1,20 @@
 import { memo, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Search as SearchIcon, X, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useSearch } from "@/hooks/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSearch, useThreads } from "@/hooks/api";
 import type { SearchQueryParams } from "@/types/api";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/lib/date-utils";
 
 interface SearchProps {
   onClose?: () => void;
@@ -16,9 +23,13 @@ interface SearchProps {
 const SearchComponent = memo(({ onClose }: SearchProps) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [selectedThreadId, setSelectedThreadId] = useState<number | undefined>(
+    undefined
+  );
   const [searchParams, setSearchParams] = useState<SearchQueryParams | null>(
     null
   );
+  const { data: threads } = useThreads();
 
   const { data: searchResults, isLoading } = useSearch(
     searchParams || { query: "", sort: "relevance", page: 1, limit: 10 },
@@ -35,8 +46,9 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
       sort: "relevance",
       page: 1,
       limit: 10,
+      threadId: selectedThreadId,
     });
-  }, [query]);
+  }, [query, selectedThreadId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -94,6 +106,26 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </div>
+      <div className="mt-2">
+        <Select
+          value={selectedThreadId?.toString() || "all"}
+          onValueChange={(value) => {
+            setSelectedThreadId(value === "all" ? undefined : Number(value));
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by hive (optional)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Hives</SelectItem>
+            {threads?.map((thread) => (
+              <SelectItem key={thread.id} value={thread.id.toString()}>
+                {thread.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {searchParams && searchParams.query && (
         <Card className="absolute z-50 mt-2 w-full shadow-lg">
@@ -140,11 +172,7 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
                           <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                             <span>👍 {result.score}</span>
                             <span>•</span>
-                            <span>
-                              {formatDistanceToNow(new Date(result.createdAt), {
-                                addSuffix: true,
-                              })}
-                            </span>
+                            <span>{formatTimeAgo(result.createdAt)}</span>
                           </div>
                         </div>
                       </div>

@@ -4,12 +4,12 @@ import { RightSidebar } from "@/components/home/sidebar/RightSidebar";
 
 export const WithSidebars = () => {
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-2">
+    <div className="mx-auto max-dvw px-2">
+      <div className="grid grid-cols-14 gap-4">
+        <div className="col-span-3">
           <LeftSidebar />
         </div>
-        <div className="col-span-7">
+        <div className="col-span-8">
           <Outlet />
         </div>
         <div className="col-span-3">

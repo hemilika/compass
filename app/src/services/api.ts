@@ -18,7 +18,6 @@ import type {
   UpdateUserRequest,
   CreateBuRequest,
   UpdateBuRequest,
-  AddUserToThreadRequest,
   SearchQueryParams,
   SearchResponse,
   AiSearchRequest,
@@ -112,19 +111,12 @@ export const threadsApi = {
     return api.delete<void>(`/threads/${id}`);
   },
 
-  addUser: async (
-    threadId: number,
-    userId: number,
-    data: AddUserToThreadRequest
-  ): Promise<void> => {
-    return api.post<void, AddUserToThreadRequest>(
-      `/threads/${threadId}/users/${userId}`,
-      data
-    );
+  join: async (threadId: number): Promise<void> => {
+    return api.post<void>(`/threads/${threadId}/join`);
   },
 
-  removeUser: async (threadId: number, userId: number): Promise<void> => {
-    return api.delete<void>(`/threads/${threadId}/users/${userId}`);
+  leave: async (threadId: number): Promise<void> => {
+    return api.delete<void>(`/threads/${threadId}/leave`);
   },
 };
 

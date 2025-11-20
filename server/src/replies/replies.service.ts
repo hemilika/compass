@@ -46,7 +46,7 @@ export class RepliesService {
         );
       }
 
-      if (parentReply.post_id !== createReplyDto.post_id) {
+      if (+parentReply.post_id !== createReplyDto.post_id) {
         throw new BadRequestException(
           'Parent reply must belong to the same post',
         );

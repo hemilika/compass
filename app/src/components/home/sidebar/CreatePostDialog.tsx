@@ -103,12 +103,12 @@ export const CreatePostDialog = ({
             name="thread_id"
             validators={{
               onChange: ({ value }) =>
-                !value || value === 0 ? "Thread is required" : undefined,
+                !value || value === 0 ? "Hive is required" : undefined,
             }}
           >
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="thread_id">Thread *</Label>
+                <Label htmlFor="thread_id">Hive *</Label>
                 <Select
                   value={field.state.value?.toString() || ""}
                   onValueChange={(value) =>
@@ -117,7 +117,7 @@ export const CreatePostDialog = ({
                   disabled={!!defaultThreadId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a thread" />
+                    <SelectValue placeholder="Select a hive" />
                   </SelectTrigger>
                   <SelectContent>
                     {Array.isArray(threads) && threads.length > 0 ? (
@@ -131,14 +131,14 @@ export const CreatePostDialog = ({
                       ))
                     ) : (
                       <SelectItem value="" disabled>
-                        No threads available
+                        No hives available
                       </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
                 {defaultThreadId && (
                   <p className="text-xs text-muted-foreground">
-                    Thread is pre-selected for this page
+                    Hive is pre-selected for this page
                   </p>
                 )}
                 {field.state.meta.errors.length > 0 && (

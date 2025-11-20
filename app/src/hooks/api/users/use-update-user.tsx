@@ -15,10 +15,10 @@ export const useUpdateUser = () => {
         queryKey: queryKeys.users.detail(variables.id),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.users.profile() });
-      toast.success("Profile updated successfully");
+      toast.success("You updated your profile");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || "You couldn't update your profile");
     },
   });
 };

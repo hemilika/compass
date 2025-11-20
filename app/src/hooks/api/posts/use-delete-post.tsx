@@ -7,13 +7,19 @@ import { queryKeys } from "../query-keys";
 export const useDeletePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => postsApi.delete(id),
-    onSuccess: () => {
+    mutationFn: async (id: number) => {
+      // Get post data before deleting for toast message
+      const post = await postsApi.getById(id);
+      await postsApi.delete(id);
+      return post;
+    },
+    onSuccess: (post) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.lists() });
-      toast.success("Post deleted successfully");
+      const threadName = post.thread?.name || "the hive";
+      toast.success(`You deleted your post from ${threadName} hive`);
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to delete post");
+      toast.error(error.message || "You couldn't delete the post");
     },
   });
 };

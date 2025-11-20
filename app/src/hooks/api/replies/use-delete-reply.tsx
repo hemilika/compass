@@ -15,10 +15,10 @@ export const useDeleteReply = () => {
       // Also invalidate posts to refresh reply counts
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.details() });
-      toast.success("Reply deleted successfully");
+      toast.success("You deleted your reply");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to delete reply");
+      toast.error(error.message || "You couldn't delete the reply");
     },
   });
 };

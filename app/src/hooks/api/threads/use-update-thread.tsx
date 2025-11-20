@@ -15,10 +15,10 @@ export const useUpdateThread = () => {
         queryKey: queryKeys.threads.detail(variables.id),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
-      toast.success("Thread updated successfully");
+      toast.success(`You updated ${variables.data.name || "the hive"}`);
     },
     onError: (error: ApiError) => {
-      toast.error(error.message || "Failed to update thread");
+      toast.error(error.message || "You couldn't update the hive");
     },
   });
 };

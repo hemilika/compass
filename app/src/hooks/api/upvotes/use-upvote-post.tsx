@@ -3,11 +3,51 @@ import { toast } from "sonner";
 import type { ApiError } from "@/lib/httpClient";
 import { upvotesApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
+import type { Post } from "@/types/api";
 
 export const useUpvotePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (postId: number) => upvotesApi.upvotePost(postId),
+    onMutate: async (postId) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.posts.detail(postId),
+      });
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.posts.lists(),
+      });
+
+      // Snapshot previous values
+      const previousPost = queryClient.getQueryData<Post>(
+        queryKeys.posts.detail(postId)
+      );
+      const previousPosts = queryClient.getQueriesData<Post[]>({
+        queryKey: queryKeys.posts.lists(),
+      });
+
+      // Optimistically update post detail
+      if (previousPost) {
+        queryClient.setQueryData<Post>(queryKeys.posts.detail(postId), {
+          ...previousPost,
+          upvote_count: previousPost.upvote_count + 1,
+        });
+      }
+
+      // Optimistically update post lists
+      previousPosts.forEach(([queryKey, posts]) => {
+        if (posts) {
+          queryClient.setQueryData<Post[]>(
+            queryKey,
+            posts.map((p) =>
+              p.id === postId ? { ...p, upvote_count: p.upvote_count + 1 } : p
+            )
+          );
+        }
+      });
+
+      return { previousPost, previousPosts };
+    },
     onSuccess: (_data, postId) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.posts.detail(postId),
@@ -15,7 +55,21 @@ export const useUpvotePost = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.upvotes.mine() });
     },
-    onError: (error: ApiError) => {
+    onError: (error: ApiError, postId, context) => {
+      // Rollback on error
+      if (context?.previousPost) {
+        queryClient.setQueryData<Post>(
+          queryKeys.posts.detail(postId),
+          context.previousPost
+        );
+      }
+      if (context?.previousPosts) {
+        context.previousPosts.forEach(([queryKey, posts]) => {
+          if (posts) {
+            queryClient.setQueryData<Post[]>(queryKey, posts);
+          }
+        });
+      }
       // Silently handle duplicate upvote errors (idempotency)
       if (error.status !== 400 && error.status !== 409) {
         toast.error(error.message || "Failed to upvote post");
@@ -23,4 +77,3 @@ export const useUpvotePost = () => {
     },
   });
 };
-

@@ -57,8 +57,8 @@ export const CreateThreadDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Thread</DialogTitle>
-          <DialogDescription>Create a new discussion thread</DialogDescription>
+          <DialogTitle>Create Hive</DialogTitle>
+          <DialogDescription>Create a new discussion hive</DialogDescription>
         </DialogHeader>
 
         <form
@@ -73,17 +73,17 @@ export const CreateThreadDialog = ({
             name="name"
             validators={{
               onChange: ({ value }) =>
-                !value?.trim() ? "Thread name is required" : undefined,
+                !value?.trim() ? "Hive name is required" : undefined,
             }}
           >
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="name">Thread Name *</Label>
+                <Label htmlFor="name">Hive Name *</Label>
                 <Input
                   id="name"
                   value={field.state.value || ""}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Enter thread name"
+                  placeholder="Enter hive name"
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-sm text-destructive">
@@ -102,7 +102,7 @@ export const CreateThreadDialog = ({
                   id="description"
                   value={field.state.value || ""}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Describe what this thread is about..."
+                  placeholder="Describe what this hive is about..."
                   rows={4}
                 />
               </div>
@@ -156,7 +156,7 @@ export const CreateThreadDialog = ({
               type="submit"
               disabled={createThreadMutation.isPending || !form.state.canSubmit}
             >
-              {createThreadMutation.isPending ? "Creating..." : "Create Thread"}
+              {createThreadMutation.isPending ? "Creating..." : "Create Hive"}
             </Button>
           </DialogFooter>
         </form>

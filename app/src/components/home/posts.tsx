@@ -8,7 +8,7 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/lib/date-utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,12 +24,21 @@ import type { Post } from "@/types/api";
 
 type SortOption = "hot" | "new" | "top";
 
-export const Posts = () => {
+interface PostsProps {
+  posts?: Post[];
+}
+
+export const Posts = ({ posts: providedPosts }: PostsProps = {}) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [sortBy, setSortBy] = useState<SortOption>("new");
-  const { data: posts, isLoading, error } = usePosts();
+  const { data: fetchedPosts, isLoading, error } = usePosts();
   const { data: myUpvotes } = useMyUpvotes();
+  
+  // Use provided posts or fetch them
+  const posts = providedPosts ?? fetchedPosts;
+  // Only show loading if we're fetching posts (not using provided posts)
+  const isActuallyLoading = !providedPosts && isLoading;
   const upvoteMutation = useUpvotePost();
   const removeUpvoteMutation = useRemovePostUpvote();
   const [sharedPostId, setSharedPostId] = useState<number | null>(null);
@@ -109,15 +118,8 @@ export const Posts = () => {
     }
   }, [posts, sortBy]);
 
-  const formatTimeAgo = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-    } catch {
-      return "Unknown time";
-    }
-  };
 
-  if (isLoading) {
+  if (isActuallyLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -184,7 +186,7 @@ export const Posts = () => {
             post.author?.firstname?.trim() && post.author?.lastname?.trim()
               ? `${post.author.firstname.trim()} ${post.author.lastname.trim()}`
               : post.author?.email?.split("@")[0] || "Unknown";
-          const threadName = post.thread?.name || "Unknown Thread";
+          const threadName = post.thread?.name || "Unknown Hive";
 
           return (
             <Card

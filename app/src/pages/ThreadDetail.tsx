@@ -1,23 +1,35 @@
 import { useParams, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Loader2, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Loader2,
+  Users,
+  UserPlus,
+  UserMinus,
+} from "lucide-react";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useThread, usePosts } from "@/hooks/api";
+import {
+  useThread,
+  usePosts,
+  useJoinThread,
+  useLeaveThread,
+} from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/lib/date-utils";
 import { CreatePostDialog } from "@/components/home/sidebar/CreatePostDialog";
 
 const ThreadDetailPage = () => {
-  const { threadId } = useParams({ strict: false });
+  const { hiveid } = useParams({ strict: false });
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const { data: thread, isLoading: threadLoading } = useThread(
-    Number(threadId)
-  );
-  const { data: posts, isLoading: postsLoading } = usePosts(Number(threadId));
+  const { isAuthenticated, user } = useAuth();
+  const { data: thread, isLoading: threadLoading } = useThread(Number(hiveid));
+  const { data: posts, isLoading: postsLoading } = usePosts(Number(hiveid));
   const [createPostOpen, setCreatePostOpen] = useState(false);
+  const joinThreadMutation = useJoinThread();
+  const leaveThreadMutation = useLeaveThread();
 
   // Ensure we have valid posts and deduplicate by id
   // This hook must be called before any early returns
@@ -40,12 +52,26 @@ const ThreadDetailPage = () => {
   if (!thread) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-destructive">Thread not found</p>
+        <p className="text-destructive">Hive not found</p>
       </div>
     );
   }
 
   const memberCount = thread.threadUsers?.length || 0;
+  const isFollowing =
+    isAuthenticated &&
+    user &&
+    thread.threadUsers?.some((tu) => tu.user_id === user.id);
+
+  const handleFollowToggle = async () => {
+    if (!isAuthenticated || !user) return;
+
+    if (isFollowing) {
+      await leaveThreadMutation.mutateAsync(thread.id);
+    } else {
+      await joinThreadMutation.mutateAsync(thread.id);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -57,7 +83,7 @@ const ThreadDetailPage = () => {
         </Button>
       </div>
 
-      {/* Thread Info Card */}
+      {/* Hive Info Card */}
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between">
@@ -83,20 +109,43 @@ const ThreadDetailPage = () => {
                 {thread.bu && (
                   <Badge variant="secondary">{thread.bu.name}</Badge>
                 )}
-                <span>
-                  Created{" "}
-                  {formatDistanceToNow(new Date(thread.created_at), {
-                    addSuffix: true,
-                  })}
-                </span>
+                <span>Created {formatTimeAgo(thread.created_at)}</span>
               </div>
             </div>
-            {isAuthenticated && (
-              <Button onClick={() => setCreatePostOpen(true)} className="ml-4">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Post
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {isAuthenticated && (
+                <Button
+                  variant={isFollowing ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleFollowToggle}
+                  disabled={
+                    joinThreadMutation.isPending ||
+                    leaveThreadMutation.isPending
+                  }
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserMinus className="mr-2 h-4 w-4" />
+                      Unfollow
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Follow
+                    </>
+                  )}
+                </Button>
+              )}
+              {isAuthenticated && (
+                <Button
+                  onClick={() => setCreatePostOpen(true)}
+                  className="ml-4"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Post
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -130,11 +179,7 @@ const ThreadDetailPage = () => {
                     <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>Posted by {authorName}</span>
                       <span>•</span>
-                      <span>
-                        {formatDistanceToNow(new Date(post.created_at), {
-                          addSuffix: true,
-                        })}
-                      </span>
+                      <span>{formatTimeAgo(post.created_at)}</span>
                     </div>
                     <h3 className="mb-2 text-lg font-semibold">{post.title}</h3>
                     <p className="mb-3 line-clamp-3 text-sm text-muted-foreground">
@@ -172,7 +217,7 @@ const ThreadDetailPage = () => {
       <CreatePostDialog
         open={createPostOpen}
         onOpenChange={setCreatePostOpen}
-        defaultThreadId={Number(threadId)}
+        defaultThreadId={Number(hiveid)}
       />
     </div>
   );
