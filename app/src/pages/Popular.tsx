@@ -4,7 +4,6 @@ import {
   ChevronUp,
   MessageCircle,
   Share2,
-  Bookmark,
   Loader2,
   Check,
 } from "lucide-react";
@@ -61,10 +60,6 @@ const PopularPage = () => {
     } catch {
       toast.error("Failed to copy link");
     }
-  };
-
-  const handleSave = () => {
-    toast.info("Save functionality coming soon!");
   };
 
   // Sort by upvotes (popular)
@@ -236,15 +231,6 @@ const PopularPage = () => {
                           <Share2 className="h-4 w-4" />
                         )}
                         Share
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-2 text-xs"
-                        onClick={handleSave}
-                      >
-                        <Bookmark className="h-4 w-4" />
-                        Save
                       </Button>
                     </div>
                   </div>

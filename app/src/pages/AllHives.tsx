@@ -41,7 +41,7 @@ const AllHivesPage = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 grid-cols-2">
         {threads.map((thread) => {
           const initial = thread.name.charAt(0).toUpperCase();
           const memberCount = thread.threadUsers?.length || 0;
@@ -69,11 +69,18 @@ const AllHivesPage = () => {
                       {initial}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg line-clamp-1">
-                        {thread.name}
-                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg line-clamp-1">
+                          {thread.name}
+                        </CardTitle>
+                        {isFollowing && (
+                          <Badge variant="secondary" className="shrink-0">
+                            Following
+                          </Badge>
+                        )}
+                      </div>
                       {thread.description && (
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                        <p className="mt-1 text-sm text-muted-foreground truncate">
                           {thread.description}
                         </p>
                       )}
@@ -99,12 +106,6 @@ const AllHivesPage = () => {
                       <div className="text-xs text-muted-foreground">
                         Created {formatTimeAgo(thread.created_at)}
                       </div>
-                    )}
-
-                    {isFollowing && (
-                      <Badge variant="secondary" className="w-fit">
-                        Following
-                      </Badge>
                     )}
                   </div>
                 </CardContent>

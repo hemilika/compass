@@ -4,7 +4,6 @@ import {
   ChevronUp,
   MessageCircle,
   Share2,
-  Bookmark,
   Loader2,
   Check,
 } from "lucide-react";
@@ -74,11 +73,6 @@ export const Posts = ({ posts: providedPosts }: PostsProps = {}) => {
     } catch {
       toast.error("Failed to copy link");
     }
-  };
-
-  const handleSave = () => {
-    // TODO: Implement save/bookmark functionality when backend supports it
-    toast.info("Save functionality coming soon!");
   };
 
   const sortedPosts = useMemo(() => {
@@ -296,15 +290,6 @@ export const Posts = ({ posts: providedPosts }: PostsProps = {}) => {
                           <Share2 className="h-4 w-4" />
                         )}
                         Share
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 gap-2 text-xs"
-                        onClick={handleSave}
-                      >
-                        <Bookmark className="h-4 w-4" />
-                        Save
                       </Button>
                     </div>
                   </div>
