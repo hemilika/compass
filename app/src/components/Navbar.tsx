@@ -24,7 +24,7 @@ import { useUserProfile } from "@/hooks/api";
 const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
-  const { data: profile } = useUserProfile();
+  const { data: profile } = useUserProfile(isAuthenticated);
   const [searchOpen, setSearchOpen] = useState(false);
 
   const displayUser = profile || user;

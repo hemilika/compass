@@ -1,4 +1,5 @@
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export const CreateThreadDialog = ({
   open,
   onOpenChange,
 }: CreateThreadDialogProps) => {
+  const navigate = useNavigate();
   const createThreadMutation = useCreateThread();
   const { data: businessUnits } = useBusinessUnits();
 
@@ -40,13 +42,18 @@ export const CreateThreadDialog = ({
     },
     onSubmit: async ({ value }) => {
       try {
-        await createThreadMutation.mutateAsync({
+        const createdThread = await createThreadMutation.mutateAsync({
           name: value.name,
           description: value.description || undefined,
           bu_id: value.bu_id || undefined,
         });
         onOpenChange(false);
         form.reset();
+        // Navigate to the created hive
+        navigate({
+          to: `/hives/$hiveid`,
+          params: { hiveid: createdThread.id.toString() },
+        });
       } catch {
         // Error handled by mutation
       }

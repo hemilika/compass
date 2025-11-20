@@ -4,7 +4,7 @@ import type { ApiError } from "@/lib/httpClient";
 import { usersApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 
-export const useUserProfile = () => {
+export const useUserProfile = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.users.profile(),
     queryFn: async () => {
@@ -16,6 +16,6 @@ export const useUserProfile = () => {
         throw error;
       }
     },
+    enabled,
   });
 };
-

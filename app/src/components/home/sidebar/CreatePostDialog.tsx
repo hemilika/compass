@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ export const CreatePostDialog = ({
   onOpenChange,
   defaultThreadId,
 }: CreatePostDialogProps) => {
+  const navigate = useNavigate();
   const createPostMutation = useCreatePost();
   const { data: threads } = useThreads();
   const { data: businessUnits } = useBusinessUnits();
@@ -50,7 +52,7 @@ export const CreatePostDialog = ({
     defaultValues: defaultValues,
     onSubmit: async ({ value }) => {
       try {
-        await createPostMutation.mutateAsync({
+        const createdPost = await createPostMutation.mutateAsync({
           thread_id: value.thread_id,
           bu_id: value.bu_id || undefined,
           title: value.title,
@@ -60,6 +62,11 @@ export const CreatePostDialog = ({
         });
         onOpenChange(false);
         form.reset();
+        // Navigate to the created post
+        navigate({
+          to: `/posts/$postId`,
+          params: { postId: createdPost.id.toString() },
+        });
       } catch {
         // Error handled by mutation
       }

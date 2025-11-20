@@ -4,7 +4,7 @@ import type { ApiError } from "@/lib/httpClient";
 import { postsApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 
-export const usePosts = (threadId?: number) => {
+export const usePosts = (threadId?: number, enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.posts.list(threadId),
     queryFn: async () => {
@@ -12,10 +12,12 @@ export const usePosts = (threadId?: number) => {
         return await postsApi.getAll(threadId);
       } catch (error) {
         const apiError = error as ApiError;
-        toast.error(apiError.message || "Failed to fetch posts");
+        if (apiError.status !== 401) {
+          toast.error(apiError.message || "Failed to fetch posts");
+        }
         throw error;
       }
     },
+    enabled,
   });
 };
-

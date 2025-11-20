@@ -4,7 +4,7 @@ import type { ApiError } from "@/lib/httpClient";
 import { usersApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 
-export const useUsers = () => {
+export const useUsers = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.users.lists(),
     queryFn: async () => {
@@ -12,10 +12,12 @@ export const useUsers = () => {
         return await usersApi.getAll();
       } catch (error) {
         const apiError = error as ApiError;
-        toast.error(apiError.message || "Failed to fetch users");
+        if (apiError.status !== 401) {
+          toast.error(apiError.message || "Failed to fetch users");
+        }
         throw error;
       }
     },
+    enabled,
   });
 };
-

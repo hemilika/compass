@@ -44,12 +44,12 @@ const navigationItems = [
 export const LeftSidebar = () => {
   const { isAuthenticated, user } = useAuth();
   const { data: recommendedThreads, isLoading: isLoadingRecommended } =
-    useRecommendedThreads();
-  const { data: posts } = usePosts();
-  const { data: allUsers } = useUsers();
-  const { data: topContributors } = useTopContributors();
+    useRecommendedThreads(isAuthenticated);
+  const { data: posts } = usePosts(undefined, isAuthenticated);
+  const { data: allUsers } = useUsers(isAuthenticated);
+  const { data: topContributors } = useTopContributors(isAuthenticated);
   const { data: weeklyTopPosts, isLoading: topPostsLoading } =
-    useWeeklyTopPosts();
+    useWeeklyTopPosts(isAuthenticated);
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [createThreadOpen, setCreateThreadOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);

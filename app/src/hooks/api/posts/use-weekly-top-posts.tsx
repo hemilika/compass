@@ -3,7 +3,7 @@ import { cultureBuilderApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 import type { WeeklyAnalytics } from "@/types/api";
 
-export const useWeeklyTopPosts = () => {
+export const useWeeklyTopPosts = (enabled: boolean = true) => {
   return useQuery<WeeklyAnalytics>({
     queryKey: queryKeys.posts.weeklyTop(),
     queryFn: async () => {
@@ -12,6 +12,6 @@ export const useWeeklyTopPosts = () => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled,
   });
 };
-
