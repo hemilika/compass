@@ -357,62 +357,66 @@ export class SearchService implements OnModuleInit {
             throw new Error('OpenAI API key not configured');
         }
 
-        // Get user's accessible threads
-        const userThreads = await this.threadUsersRepo.find({
-            where: { user_id: userId },
-            select: ['thread_id'],
-        });
-        const accessibleThreadIds = new Set(userThreads.map(ut => ut.thread_id));
+        // Query database directly for posts and replies (no thread restriction)
+        const terms = tokenize(dto.query);
+        const searchPattern = `%${dto.query}%`;
 
-        // Pre-filter documents using traditional search
-        const preSearchResults = this.search({
-            query: dto.query,
-            buId: dto.buId ? Number(dto.buId) : undefined,
-            threadId: dto.threadId ? Number(dto.threadId) : undefined,
-            limit: SEARCH_CONFIG.ai.maxContextDocuments,
-        });
+        // Build post query - search all posts
+        const postQuery = this.postsRepo.createQueryBuilder('post')
+            .leftJoinAndSelect('post.author', 'author')
+            .leftJoinAndSelect('post.thread', 'thread')
+            .leftJoinAndSelect('post.bu', 'bu')
+            .where('(LOWER(post.title) LIKE LOWER(:pattern) OR LOWER(post.content) LIKE LOWER(:pattern))',
+                { pattern: searchPattern });
 
-        // Filter by user's accessible threads
-        const accessibleDocs = preSearchResults.results.filter(result => {
-            if (!result.threadId) return false;
-            return accessibleThreadIds.has(result.threadId);
-        });
-
-        if (accessibleDocs.length === 0) {
-            return {
-                answer: "I couldn't find any relevant posts or replies in the threads you have access to. Try refining your search query or check if you have access to the relevant threads.",
-                sources: [],
-                suggestedFollowups: [
-                    "What threads am I subscribed to?",
-                    "Show me recent posts",
-                    "What's trending today?"
-                ],
-                metadata: {
-                    totalSources: 0,
-                    modelUsed: this.configService.get('OPENAI_MODEL', 'gpt-5-nano'),
-                    queryProcessedAt: new Date(),
-                },
-            };
+        if (dto.buId) {
+            postQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
+        }
+        if (dto.threadId) {
+            postQuery.andWhere('post.thread_id = :threadId', { threadId: dto.threadId });
         }
 
-        // Get full post and reply details for AI context
-        const posts = await this.postsRepo.find({
-            where: {
-                id: In(accessibleDocs
-                    .filter(d => d.type === 'post')
-                    .map(d => d.postId)),
-            },
-            relations: ['author', 'thread', 'bu'],
-        });
+        postQuery.orderBy('post.upvote_count', 'DESC')
+            .addOrderBy('post.created_at', 'DESC')
+            .limit(SEARCH_CONFIG.ai.maxContextDocuments);
 
-        const replies = await this.repliesRepo.find({
-            where: {
-                id: In(accessibleDocs
-                    .filter(d => d.type === 'reply')
-                    .map(d => Number(d.id.replace('reply_', '')))),
-            },
-            relations: ['author', 'post', 'post.thread', 'post.bu'],
-        });
+        // Build reply query - search all replies
+        const replyQuery = this.repliesRepo.createQueryBuilder('reply')
+            .leftJoinAndSelect('reply.author', 'author')
+            .leftJoinAndSelect('reply.post', 'post')
+            .leftJoinAndSelect('post.thread', 'thread')
+            .leftJoinAndSelect('post.bu', 'bu')
+            .where('LOWER(reply.content) LIKE LOWER(:pattern)', { pattern: searchPattern });
+
+        if (dto.buId) {
+            replyQuery.andWhere('post.bu_id = :buId', { buId: dto.buId });
+        }
+        if (dto.threadId) {
+            replyQuery.andWhere('post.thread_id = :threadId', { threadId: dto.threadId });
+        }
+
+        replyQuery.orderBy('reply.upvote_count', 'DESC')
+            .addOrderBy('reply.created_at', 'DESC')
+            .limit(SEARCH_CONFIG.ai.maxContextDocuments);
+
+        // Execute queries in parallel
+        const [posts, replies] = await Promise.all([
+            postQuery.getMany(),
+            replyQuery.getMany(),
+        ]);
+
+        // If no results found, get recent popular posts as fallback suggestions
+        let fallbackPosts: Post[] = [];
+        if (posts.length === 0 && replies.length === 0) {
+            fallbackPosts = await this.postsRepo.createQueryBuilder('post')
+                .leftJoinAndSelect('post.author', 'author')
+                .leftJoinAndSelect('post.thread', 'thread')
+                .leftJoinAndSelect('post.bu', 'bu')
+                .orderBy('post.upvote_count', 'DESC')
+                .addOrderBy('post.created_at', 'DESC')
+                .limit(5)
+                .getMany();
+        }
 
         // Build context for OpenAI
         const contextDocs = [
@@ -437,6 +441,17 @@ export class SearchService implements OnModuleInit {
                 upvotes: r.upvote_count,
                 createdAt: r.created_at,
                 postTitle: r.post?.title,
+            })),
+            ...fallbackPosts.map(p => ({
+                id: `post_${p.id}`,
+                type: 'post' as const,
+                title: p.title,
+                content: p.content,
+                author: `${p.author.firstname || ''} ${p.author.lastname || ''}`.trim() || p.author.email,
+                threadName: p.thread?.name,
+                buName: p.bu?.name,
+                upvotes: p.upvote_count,
+                createdAt: p.created_at,
             })),
         ];
 
@@ -597,15 +612,18 @@ ${docsContext}
 
 INSTRUCTIONS:
 1. Analyze the user's query and identify the most relevant documents from the list above
-2. Provide a clear, concise answer that synthesizes information from relevant sources
-3. IMPORTANT: Reference posts using HTML anchor tags with this exact format: <a href="/posts/{post_id}" class="post-link" data-post-id="{post_id}">{Post Title}</a>
-4. IMPORTANT: Reference replies using: <a href="/posts/{post_id}#reply-{reply_id}" class="reply-link" data-reply-id="{reply_id}">this reply</a>
-5. Example: "Check out <a href="/posts/4" class="post-link" data-post-id="4">Vue 3 vs React - Your opinion?</a> for framework comparisons."
-6. If the query cannot be answered with the available documents, say so clearly
-7. Suggest 2-3 relevant follow-up questions the user might ask
-8. Be conversational and helpful, but stay focused on the available content
-9. When multiple documents are relevant, mention the most important ones first
-10. Always use HTML links when mentioning posts or replies so the frontend can render them as clickable links
+2. If exact matches are found, provide a clear, concise answer that synthesizes information from relevant sources
+3. If no exact matches are found but there are similar/related posts, mention them as "You might be interested in these related discussions:"
+4. IMPORTANT: ALWAYS stay focused on the available posts and their content. Do NOT make up information or provide general knowledge answers
+5. Reference posts using HTML anchor tags with this exact format: <a href="/posts/{id}" class="post-link" data-post-id="{id}">{Post Title}</a>
+6. Example: "Check out <a href="/posts/4" class="post-link" data-post-id="4">Vue 3 vs React - Your opinion?</a> for framework comparisons."
+7. If the query cannot be answered with the available documents, say "I couldn't find posts specifically about [topic], but here are some related discussions that might help:" and suggest relevant posts
+8. Suggest 2-3 relevant follow-up questions based on the available content
+9. Be conversational and helpful, but NEVER provide information beyond what's in the available documents
+10. When multiple documents are relevant, mention the most important ones first
+11. Always use HTML links when mentioning posts or replies so the frontend can render them as clickable links
+
+CRITICAL: You must ONLY provide information from the available documents. If something is not in the documents, acknowledge that and suggest the closest related posts instead.
 
 Use the format_search_results function to structure your response.`;
     }
