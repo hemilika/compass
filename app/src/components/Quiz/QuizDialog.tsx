@@ -29,10 +29,10 @@ interface QuizDialogProps {
 
 export const QuizDialog = ({ open, onOpenChange }: QuizDialogProps) => {
   const navigate = useNavigate();
-  const { data: quiz, isLoading } = useActiveQuiz();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const { data: quiz, isLoading } = useActiveQuiz(isAuthenticated && open);
   const { data: submissions, isLoading: submissionsLoading } =
-    useQuizSubmissions();
+    useQuizSubmissions(isAuthenticated && open);
   const submitQuizMutation = useSubmitQuiz();
   const { data: leaderboard } = useQuizLeaderboard(quiz?.id || 0, 10);
   const [answers, setAnswers] = useState<number[]>([]);

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const FollowingPage = () => {
   const { isAuthenticated, user } = useAuth();
-  const { data: threads, isLoading } = useThreads();
+  const { data: threads, isLoading } = useThreads(isAuthenticated);
   const { data: allPosts } = usePosts();
   const navigate = useNavigate();
 

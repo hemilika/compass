@@ -9,7 +9,8 @@ import { formatTimeAgo } from "@/lib/date-utils";
 
 const AllHivesPage = () => {
   const { isAuthenticated, user } = useAuth();
-  const { data: threads, isLoading: threadsLoading } = useThreads();
+  const { data: threads, isLoading: threadsLoading } =
+    useThreads(isAuthenticated);
   const { data: businessUnits } = useBusinessUnits();
 
   if (threadsLoading) {

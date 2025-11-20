@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useCreatePost, useThreads, useBusinessUnits } from "@/hooks/api";
+import { useAuth } from "@/hooks/use-auth";
 import type { CreatePostRequest } from "@/types/api";
 
 interface CreatePostDialogProps {
@@ -44,8 +45,9 @@ export const CreatePostDialog = ({
   defaultThreadId,
 }: CreatePostDialogProps) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const createPostMutation = useCreatePost();
-  const { data: threads } = useThreads();
+  const { data: threads } = useThreads(isAuthenticated && open);
   const { data: businessUnits } = useBusinessUnits();
 
   const form = useForm({

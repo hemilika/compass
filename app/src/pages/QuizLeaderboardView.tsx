@@ -9,7 +9,7 @@ const QuizLeaderboardPage = () => {
   const { quizId } = useParams({ strict: false });
   const navigate = useNavigate();
   const quizIdNumber = quizId ? Number(quizId) : null;
-  const { data: quiz, isLoading: quizLoading } = useActiveQuiz();
+  const { data: quiz, isLoading: quizLoading } = useActiveQuiz(true);
   const { data: leaderboard, isLoading: leaderboardLoading } =
     useQuizLeaderboard(
       quizIdNumber || quiz?.id || 0,

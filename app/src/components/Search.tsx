@@ -32,7 +32,7 @@ const SearchComponent = memo(({ onClose }: SearchProps) => {
   const [searchParams, setSearchParams] = useState<SearchQueryParams | null>(
     null
   );
-  const { data: threads } = useThreads();
+  const { data: threads } = useThreads(true);
   const { data: businessUnits } = useBusinessUnits();
 
   const { data: searchResults, isLoading } = useSearch(

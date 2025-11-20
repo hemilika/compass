@@ -3,9 +3,12 @@ import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useThreads, useBusinessUnits } from "@/hooks/api";
+import { useAuth } from "@/hooks/use-auth";
 
 export const RightSidebar = () => {
-  const { data: threads, isLoading: threadsLoading } = useThreads();
+  const { isAuthenticated } = useAuth();
+  const { data: threads, isLoading: threadsLoading } =
+    useThreads(isAuthenticated);
   const { data: businessUnits, isLoading: buLoading } = useBusinessUnits();
 
   return (

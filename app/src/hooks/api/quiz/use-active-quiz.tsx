@@ -3,7 +3,7 @@ import { cultureBuilderApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 import type { Quiz } from "@/types/api";
 
-export const useActiveQuiz = () => {
+export const useActiveQuiz = (enabled: boolean = true) => {
   return useQuery<Quiz | null>({
     queryKey: queryKeys.quiz.active(),
     queryFn: async () => {
@@ -15,6 +15,6 @@ export const useActiveQuiz = () => {
       return result as Quiz;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled,
   });
 };
-

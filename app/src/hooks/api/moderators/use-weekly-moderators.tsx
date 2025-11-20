@@ -3,8 +3,8 @@ import { useThreads } from "../threads/use-threads";
 import { queryKeys } from "../query-keys";
 import type { WeeklyModerator } from "@/types/api";
 
-export const useWeeklyModerators = () => {
-  const { data: threads, isLoading } = useThreads();
+export const useWeeklyModerators = (enabled: boolean = true) => {
+  const { data: threads, isLoading } = useThreads(enabled);
 
   return useQuery<WeeklyModerator[]>({
     queryKey: queryKeys.moderators.weekly(),
@@ -15,9 +15,10 @@ export const useWeeklyModerators = () => {
       const moderatorMap = new Map<number, WeeklyModerator>();
 
       threads.forEach((thread) => {
-        const moderators = thread.threadUsers?.filter(
-          (tu) => tu.role === "moderator" && tu.user
-        ) || [];
+        const moderators =
+          thread.threadUsers?.filter(
+            (tu) => tu.role === "moderator" && tu.user
+          ) || [];
 
         moderators.forEach((mod) => {
           if (!mod.user) return;
@@ -55,4 +56,3 @@ export const useWeeklyModerators = () => {
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 };
-

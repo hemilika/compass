@@ -4,7 +4,7 @@ import type { ApiError } from "@/lib/httpClient";
 import { threadsApi } from "@/services/api";
 import { queryKeys } from "../query-keys";
 
-export const useThreads = () => {
+export const useThreads = (enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.threads.lists(),
     queryFn: async () => {
@@ -12,10 +12,12 @@ export const useThreads = () => {
         return await threadsApi.getAll();
       } catch (error) {
         const apiError = error as ApiError;
-        toast.error(apiError.message || "Failed to fetch threads");
+        if (apiError.status !== 401) {
+          toast.error(apiError.message || "Failed to fetch threads");
+        }
         throw error;
       }
     },
+    enabled,
   });
 };
-
