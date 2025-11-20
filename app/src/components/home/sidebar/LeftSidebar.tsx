@@ -11,6 +11,7 @@ import {
   UserMinus,
   Heart,
   Trophy,
+  Grid3x3,
 } from "lucide-react";
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
 import { QuizDialog } from "@/components/Quiz/QuizDialog";
@@ -19,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
-  useThreads,
+  useRecommendedThreads,
   usePosts,
   useUsers,
   useJoinThread,
@@ -37,11 +38,13 @@ const navigationItems = [
   { icon: TrendingUp, label: "Popular", path: "/popular" },
   { icon: Sparkles, label: "All", path: "/all" },
   { icon: Heart, label: "Following", path: "/following" },
+  { icon: Grid3x3, label: "All Hives", path: "/all-hives" },
 ];
 
 export const LeftSidebar = () => {
   const { isAuthenticated, user } = useAuth();
-  const { data: threads, isLoading } = useThreads();
+  const { data: recommendedThreads, isLoading: isLoadingRecommended } =
+    useRecommendedThreads();
   const { data: posts } = usePosts();
   const { data: allUsers } = useUsers();
   const { data: topContributors } = useTopContributors();
@@ -186,26 +189,36 @@ export const LeftSidebar = () => {
 
         <Separator />
 
-        {/* Hives Section */}
+        {/* Recommended Hives Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between px-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Hives
+              Recommended Hives
             </h3>
           </div>
           <div className="space-y-1">
-            {isLoading ? (
+            {isLoadingRecommended ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
-            ) : Array.isArray(threads) && threads.length > 0 ? (
-              threads.slice(0, 10).map((thread) => {
+            ) : Array.isArray(recommendedThreads) &&
+              recommendedThreads.length > 0 ? (
+              recommendedThreads.map((thread) => {
                 const initial = thread.name.charAt(0).toUpperCase();
-                const memberCount = thread.threadUsers?.length || 0;
+                // Idempotent: Use member_count from API if available, otherwise fallback to threadUsers length
+                const memberCount =
+                  typeof thread.member_count === "number"
+                    ? thread.member_count
+                    : thread.threadUsers?.length || 0;
+                // Idempotent: Use isJoined flag from API if available, otherwise check threadUsers
                 const isFollowing =
-                  isAuthenticated &&
-                  user &&
-                  thread.threadUsers?.some((tu) => tu.user_id === user.id);
+                  typeof thread.isJoined === "boolean"
+                    ? thread.isJoined
+                    : isAuthenticated &&
+                      user &&
+                      thread.threadUsers?.some(
+                        (tu: { user_id: number }) => tu.user_id === user.id
+                      );
 
                 const handleFollowToggle = async (
                   e: React.MouseEvent<HTMLButtonElement>
@@ -234,7 +247,7 @@ export const LeftSidebar = () => {
                       <div className="h-6 w-6 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
                         {initial}
                       </div>
-                      <span className="font-medium truncate max-w-[120px]">
+                      <span className="font-medium truncate max-w-[180px]">
                         {thread.name}
                       </span>
                     </Link>

@@ -1,55 +1,15 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/hooks/use-auth";
-import { useUserProfile, useThreads, useBusinessUnits } from "@/hooks/api";
+import { useThreads, useBusinessUnits } from "@/hooks/api";
 
 export const RightSidebar = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
-  const { data: profile } = useUserProfile();
   const { data: threads, isLoading: threadsLoading } = useThreads();
   const { data: businessUnits, isLoading: buLoading } = useBusinessUnits();
 
-  const displayUser = profile || user;
-  const userInitials =
-    displayUser?.firstname && displayUser?.lastname
-      ? `${displayUser.firstname[0]}${displayUser.lastname[0]}`.toUpperCase()
-      : displayUser?.email?.[0].toUpperCase() || "U";
-
   return (
     <aside className="sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto space-y-4">
-      {/* User Card */}
-      {isAuthenticated && displayUser && (
-        <Card
-          className="cursor-pointer transition-colors hover:bg-accent"
-          onClick={() => navigate({ to: "/settings" })}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src="NO-LOGO" alt="User" />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {userInitials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-semibold text-sm">
-                  {displayUser.firstname && displayUser.lastname
-                    ? `${displayUser.firstname} ${displayUser.lastname}`
-                    : displayUser.email?.split("@")[0] || "User"}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {displayUser.email}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Business Units */}
       <Card>
         <CardHeader className="pb-3">
@@ -66,16 +26,18 @@ export const RightSidebar = () => {
           ) : Array.isArray(businessUnits) && businessUnits.length > 0 ? (
             businessUnits.slice(0, 5).map((bu, index) => (
               <div key={bu.id}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground">
-                      {bu.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{bu.name}</p>
-                    </div>
+                <Link
+                  to="/bu/$buId"
+                  params={{ buId: bu.id.toString() }}
+                  className="flex items-center gap-2 rounded-lg p-2 transition-colors hover:bg-accent"
+                >
+                  <div className="h-8 w-8 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+                    {bu.name.charAt(0).toUpperCase()}
                   </div>
-                </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{bu.name}</p>
+                  </div>
+                </Link>
                 {index < Math.min(businessUnits.length, 5) - 1 && (
                   <Separator className="mt-3" />
                 )}

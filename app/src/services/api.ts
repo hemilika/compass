@@ -102,6 +102,10 @@ export const threadsApi = {
     return api.get<Thread[]>("/threads");
   },
 
+  getRecommended: async (): Promise<Thread[]> => {
+    return api.get<Thread[]>("/threads/recommended");
+  },
+
   getById: async (id: number): Promise<Thread> => {
     return api.get<Thread>(`/threads/${id}`);
   },

@@ -16,8 +16,11 @@ export interface User {
 }
 
 export interface BusinessUnit {
-  id: number;
+  id: number | string;
   name: string;
+  description?: string;
+  users?: User[];
+  threads?: Thread[];
 }
 
 export interface Thread {
@@ -28,6 +31,8 @@ export interface Thread {
   created_at: string;
   bu?: BusinessUnit;
   threadUsers?: ThreadUser[];
+  member_count?: number; // Added for recommended threads API response
+  isJoined?: boolean; // Added for recommended threads API response
 }
 
 export interface ThreadUser {

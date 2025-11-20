@@ -62,6 +62,7 @@ export const useJoinThread = () => {
         queryKey: queryKeys.threads.detail(threadId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.recommended() });
       toast.success(`You have successfully joined ${thread.name} Hive`);
     },
     onError: (error: ApiError, threadId, context) => {

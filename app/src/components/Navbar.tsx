@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon, User, LogOut } from "lucide-react";
 
 import { useAuth } from "../hooks/use-auth";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
@@ -12,11 +12,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserProfile } from "@/hooks/api";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
+  const { data: profile } = useUserProfile();
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const displayUser = profile || user;
+  const userInitials =
+    displayUser?.firstname && displayUser?.lastname
+      ? `${displayUser.firstname[0]}${displayUser.lastname[0]}`.toUpperCase()
+      : displayUser?.email?.[0].toUpperCase() || "U";
 
   return (
     <>
@@ -54,19 +69,41 @@ const Navbar = () => {
             )}
             <ThemeSwitcher />
 
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => {
-                    logout();
-                    navigate({ to: "/login" });
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  Sign out
-                </Button>
-              </div>
+            {isAuthenticated && displayUser ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="NO-LOGO" alt="User" />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: "/settings" })}
+                    className="cursor-pointer"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                      navigate({ to: "/login" });
+                    }}
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
                 <Button

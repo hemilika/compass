@@ -49,6 +49,7 @@ export const useLeaveThread = () => {
         queryKey: queryKeys.threads.detail(threadId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.threads.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.recommended() });
       toast.success(`You have successfully left ${thread.name} Hive`);
     },
     onError: (error: ApiError, threadId, context) => {

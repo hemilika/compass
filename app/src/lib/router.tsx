@@ -16,6 +16,8 @@ import PopularPage from "@/pages/Popular";
 import AllPage from "@/pages/All";
 import FollowingPage from "@/pages/Following";
 import QuizLeaderboardPage from "@/pages/QuizLeaderboardView";
+import BusinessUnitDetailPage from "@/pages/BusinessUnitDetail";
+import AllHivesPage from "@/pages/AllHives";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Shell from "@/components/Shell";
 import { WithSidebars } from "@/components/layouts/WithSidebars";
@@ -107,6 +109,18 @@ const quizLeaderboardRoute = createRoute({
   component: QuizLeaderboardPage,
 });
 
+const businessUnitDetailRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/bu/$buId",
+  component: BusinessUnitDetailPage,
+});
+
+const allHivesRoute = createRoute({
+  getParentRoute: () => withSidebarsRoute,
+  path: "/all-hives",
+  component: AllHivesPage,
+});
+
 // Create the route tree
 const routeTree = rootRoute.addChildren([
   loginRoute,
@@ -121,6 +135,8 @@ const routeTree = rootRoute.addChildren([
     allRoute,
     followingRoute,
     quizLeaderboardRoute,
+    businessUnitDetailRoute,
+    allHivesRoute,
   ]),
 ]);
 

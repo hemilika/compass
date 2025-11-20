@@ -10,7 +10,7 @@ dayjs.extend(relativeTime);
 export function formatTimeAgo(dateString: string): string {
   try {
     // Parse the date string and convert to user's local timezone
-    const date = dayjs(dateString);
+    const date = dayjs(dateString).add(1, "hours");
     return date.fromNow();
   } catch {
     return "Unknown time";

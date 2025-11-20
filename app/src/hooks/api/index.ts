@@ -23,6 +23,7 @@ export { useDeleteBusinessUnit } from "./business-units/use-delete-business-unit
 
 // Thread Hooks
 export { useThreads } from "./threads/use-threads";
+export { useRecommendedThreads } from "./threads/use-recommended-threads";
 export { useThread } from "./threads/use-thread";
 export { useCreateThread } from "./threads/use-create-thread";
 export { useUpdateThread } from "./threads/use-update-thread";

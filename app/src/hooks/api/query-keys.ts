@@ -17,12 +17,13 @@ export const queryKeys = {
     details: () => [...queryKeys.bu.all, "detail"] as const,
     detail: (id: number) => [...queryKeys.bu.details(), id] as const,
   },
-  threads: {
-    all: ["threads"] as const,
-    lists: () => [...queryKeys.threads.all, "list"] as const,
-    details: () => [...queryKeys.threads.all, "detail"] as const,
-    detail: (id: number) => [...queryKeys.threads.details(), id] as const,
-  },
+      threads: {
+        all: ["threads"] as const,
+        lists: () => [...queryKeys.threads.all, "list"] as const,
+        details: () => [...queryKeys.threads.all, "detail"] as const,
+        detail: (id: number) => [...queryKeys.threads.details(), id] as const,
+        recommended: () => [...queryKeys.threads.all, "recommended"] as const,
+      },
       posts: {
         all: ["posts"] as const,
         lists: () => [...queryKeys.posts.all, "list"] as const,

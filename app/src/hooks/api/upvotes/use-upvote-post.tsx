@@ -48,12 +48,37 @@ export const useUpvotePost = () => {
 
       return { previousPost, previousPosts };
     },
-    onSuccess: (_data, postId) => {
+    onSuccess: (_data, postId, context) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.posts.detail(postId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.upvotes.mine() });
+      
+      // Get post title for feedback message - check from optimistic update or cache
+      const post = 
+        context?.previousPost || 
+        queryClient.getQueryData<Post>(queryKeys.posts.detail(postId)) ||
+        (() => {
+          // Fallback: search in post lists
+          const allPosts = queryClient.getQueriesData<Post[]>({
+            queryKey: queryKeys.posts.lists(),
+          });
+          for (const [, posts] of allPosts) {
+            if (Array.isArray(posts)) {
+              const found = posts.find((p) => p.id === postId);
+              if (found) return found;
+            }
+          }
+          return null;
+        })();
+      
+      const postTitle = post?.title;
+      toast.success(
+        postTitle 
+          ? `You upvoted "${postTitle.length > 50 ? postTitle.substring(0, 50) + '...' : postTitle}"`
+          : "You upvoted the post"
+      );
     },
     onError: (error: ApiError, postId, context) => {
       // Rollback on error

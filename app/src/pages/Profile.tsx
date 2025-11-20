@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Edit, Save, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
@@ -8,20 +8,57 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useUserProfile, useUpdateUser, usePosts } from "@/hooks/api";
+import { useUserProfile, useUser, useUpdateUser, usePosts } from "@/hooks/api";
 import { useAuth } from "@/hooks/use-auth";
 import { formatTimeAgo } from "@/lib/date-utils";
 import type { UpdateUserRequest } from "@/types/api";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: profile, isLoading } = useUserProfile();
-  const updateUserMutation = useUpdateUser();
+  const { user: currentUser } = useAuth();
+  // Get search params from router location
+  const router = useRouterState();
+  // Idempotent: Parse search params - handle both object and string formats
+  const searchParamsRaw = router.location.search;
+  const searchParams =
+    typeof searchParamsRaw === "object" && searchParamsRaw !== null
+      ? (searchParamsRaw as { userId?: string | number })
+      : (() => {
+          // If it's a string, parse it using URLSearchParams
+          const params = new URLSearchParams(
+            typeof searchParamsRaw === "string" ? searchParamsRaw : ""
+          );
+          return { userId: params.get("userId") || undefined };
+        })();
+
+  // Idempotent: Get userId from search params, default to current user
+  const userId = searchParams?.userId
+    ? (() => {
+        const num = Number(searchParams.userId);
+        return Number.isInteger(num) && !isNaN(num) && num > 0 ? num : null;
+      })()
+    : null;
+
+  const isViewingOtherUser = userId !== null && userId !== currentUser?.id;
+
+  // Call both hooks unconditionally to follow Rules of Hooks
+  const { data: otherUserProfile, isLoading: otherUserLoading } = useUser(
+    userId || 0
+  );
+  const { data: ownProfile, isLoading: ownProfileLoading } = useUserProfile();
+
+  // Use appropriate data based on whether viewing own profile or another user's
+  const profile = isViewingOtherUser ? otherUserProfile : ownProfile;
+  const profileLoading = isViewingOtherUser
+    ? otherUserLoading
+    : ownProfileLoading;
+
   const { data: userPosts } = usePosts();
+  const updateUserMutation = useUpdateUser();
   const [isEditing, setIsEditing] = useState(false);
 
-  const displayUser = profile || user;
+  const displayUser = profile || currentUser;
+  const isLoading = profileLoading;
   const userInitials =
     displayUser?.firstname && displayUser?.lastname
       ? `${displayUser.firstname[0]}${displayUser.lastname[0]}`.toUpperCase()
@@ -84,7 +121,7 @@ const ProfilePage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl">Profile</CardTitle>
-            {!isEditing ? (
+            {!isViewingOtherUser && !isEditing ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -93,7 +130,7 @@ const ProfilePage = () => {
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Profile
               </Button>
-            ) : (
+            ) : !isViewingOtherUser && isEditing ? (
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -115,7 +152,7 @@ const ProfilePage = () => {
                   {updateUserMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -123,7 +160,7 @@ const ProfilePage = () => {
           <div className="flex items-center gap-6">
             <Avatar className="h-24 w-24">
               <AvatarImage src="NO-LOGO" alt="User" />
-              <AvatarFallback className="bg-logo-primary text-primary-foreground text-2xl">
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
