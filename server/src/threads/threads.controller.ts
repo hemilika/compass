@@ -32,6 +32,11 @@ export class ThreadsController {
     return this.threadsService.findAll();
   }
 
+  @Get('recommended')
+  getRecommended(@Request() req) {
+    return this.threadsService.getRecommendedThreads(req.user.userId, 5);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.threadsService.findOne(+id);

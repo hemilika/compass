@@ -626,7 +626,7 @@ Type: Post
 Title: ${doc.title}
 Content: ${doc.content}
 Author: ${doc.author}
-Thread: ${doc.threadName || 'N/A'}
+Hive: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
@@ -636,7 +636,7 @@ Type: Reply
 Post Title: ${doc.postTitle || 'N/A'}
 Content: ${doc.content}
 Author: ${doc.author}
-Thread: ${doc.threadName || 'N/A'}
+Hive: ${doc.threadName || 'N/A'}
 BU: ${doc.buName || 'N/A'}
 Upvotes: ${doc.upvotes}
 Created: ${doc.createdAt}`;
@@ -644,7 +644,9 @@ Created: ${doc.createdAt}`;
       })
       .join('\n\n---\n\n');
 
-    return `You are a helpful search assistant for Compass, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
+    return `You are a helpful search assistant for HoneyComb, an internal knowledge-sharing platform. Your role is to help users find relevant posts and replies based on their questions.
+
+TERMINOLOGY NOTE: In HoneyComb, discussion groups are called "Hives" (not threads). Always refer to them as "Hives" in your responses.
 
 AVAILABLE DOCUMENTS:
 ${docsContext}
@@ -654,13 +656,14 @@ INSTRUCTIONS:
 2. If exact matches are found, provide a clear, concise answer that synthesizes information from relevant sources
 3. If no exact matches are found but there are similar/related posts, mention them as "You might be interested in these related discussions:"
 4. IMPORTANT: ALWAYS stay focused on the available posts and their content. Do NOT make up information or provide general knowledge answers
-5. Reference posts using HTML anchor tags with this exact format: <a href="/posts/{id}" class="post-link" data-post-id="{id}">{Post Title}</a>
-6. Example: "Check out <a href="/posts/4" class="post-link" data-post-id="4">Vue 3 vs React - Your opinion?</a> for framework comparisons."
-7. If the query cannot be answered with the available documents, say "I couldn't find posts specifically about [topic], but here are some related discussions that might help:" and suggest relevant posts
-8. Suggest 2-3 relevant follow-up questions based on the available content
-9. Be conversational and helpful, but NEVER provide information beyond what's in the available documents
-10. When multiple documents are relevant, mention the most important ones first
-11. Always use HTML links when mentioning posts or replies so the frontend can render them as clickable links
+5. Reference posts using HTML anchor tags. CRITICAL: Extract the numeric ID from the document ID (e.g., "post_13" becomes "13") and use this format: <a href="/posts/13" class="post-link" data-post-id="13">Post Title</a>
+6. Example: For document ID "post_4", use: <a href="/posts/4" class="post-link" data-post-id="4">Vue 3 vs React - Your opinion?</a>
+7. NEVER use the full document ID in the href (NO /posts/post_13, use /posts/13 instead)
+8. If the query cannot be answered with the available documents, say "I couldn't find posts specifically about [topic], but here are some related discussions that might help:" and suggest relevant posts
+9. Suggest 2-3 relevant follow-up questions based on the available content
+10. Be conversational and helpful, but NEVER provide information beyond what's in the available documents
+11. When multiple documents are relevant, mention the most important ones first
+12. Always use HTML links when mentioning posts or replies so the frontend can render them as clickable links
 
 CRITICAL: You must ONLY provide information from the available documents. If something is not in the documents, acknowledge that and suggest the closest related posts instead.
 

@@ -5,11 +5,12 @@ import { ThreadsController } from './threads.controller';
 import { Thread } from './thread.entity';
 import { ThreadUser } from './thread-user.entity';
 import { Bu } from '../bu/bu.entity';
+import { User } from '../users/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Thread, ThreadUser, Bu])],
+  imports: [TypeOrmModule.forFeature([Thread, ThreadUser, Bu, User])],
   controllers: [ThreadsController],
   providers: [ThreadsService],
   exports: [ThreadsService],
 })
-export class ThreadsModule {}
+export class ThreadsModule { }
